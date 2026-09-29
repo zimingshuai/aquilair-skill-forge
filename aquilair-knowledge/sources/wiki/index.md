@@ -7,6 +7,7 @@
 | 文档 | 一行摘要 | 入库日期 |
 | --- | --- | --- |
 | [`raw/llm-wiki.md`](raw/llm-wiki.md) | Karpathy 原始构想：compile 而非 retrieve——LLM 增量构建持久互联的 wiki；三层架构（raw/wiki/schema）+ 三操作（ingest/query/lint）+ index/log 双导航 + 维护成本近零是本质 | 2026-09-28 |
+| [`raw/llm-wiki-methodology-by-nashsu.png`](raw/llm-wiki-methodology-by-nashsu.png) | nashsu 手绘方法论总结图：三层/三操作/index-log/角色分工（人策划、LLM 记账）/ingest 流程图（单源触及 10~15 页）/八大应用场景/核心洞察「维护瓶颈=记账，LLM 维护成本趋近零」——与已吸收知识逐项一致，零矛盾，新增量化触及面与场景清单 | 2026-09-29 |
 | [`raw/llm-wiki.zh.md`](raw/llm-wiki.zh.md) | 同上文的中文全译本（raw 层原文只读不改，译本并列落位） | 2026-09-28 |
 
 ## 编译层

@@ -18,3 +18,5 @@
 | audit 模式 | 用无先验干净会话对知识库做一致性审查，避免作者盲区 | clean-room audit | frankchu91 评论区 |
 | 事件驱动巡检 | 摄取计数/服务变更触发 lint，而非日历驱动 | event-driven lint | 评论区多家共识 |
 | 探索复利 | 好答案归档回知识库成为新页 | file answers back | raw/llm-wiki.md Query 节 |
+| 记账瓶颈 | 知识库维护的瓶颈不是阅读或思考，是记账（更新引用/保持一致/标注矛盾）；LLM 不厌烦不遗忘，维护成本趋近零 | bookkeeping bottleneck | raw/llm-wiki-methodology-by-nashsu.png 核心洞察框（2026-09-29 读图） |
+| 单源触及面 | 一次 ingest 可更新 10~15 个 wiki 页面——编译是有涟漪的，不是单文件操作 | touch 10-15 pages | raw/llm-wiki-methodology-by-nashsu.png（2026-09-29 读图） |
