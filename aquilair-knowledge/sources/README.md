@@ -1,6 +1,6 @@
 # 源文档溯源区（raw 区）
 
-> 设计参照 Karpathy LLM Wiki 的 `raw/` 与 `wiki/` 分离：源文档是业务方的原始口径（只读不改），`skills/*/references/` 是从源文档与实测编译出的技能资产（可迭代）。调研背景见 [aquilair-knowledge/research/2026-09-28-llm-wiki-karpathy.md](../research/2026-09-28-llm-wiki-karpathy.md)。
+> 设计参照 Karpathy LLM Wiki 的 `raw/` 与 `wiki/` 分离：源文档是业务方的原始口径（只读不改），`skills/*/references/` 是从源文档与实测编译出的技能资产（可迭代）。调研背景见 [aquilair-knowledge/research/2026-09-28-llm-wiki-karpathy.md](../research/2026-09-28-llm-wiki-karpathy.md)。**使用速查（喂文档/查出处/再摄取六场景）见 [../USAGE.md](../USAGE.md)**。
 
 ## 目录约定
 
