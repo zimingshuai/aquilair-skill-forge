@@ -226,6 +226,29 @@ def check_skill(skill_name: str, skills_dir: Path) -> list[CheckResult]:
                 f"源目录存在={present_dirs}, 打包缺席={missing_dirs}",
             )
         )
+
+    #   7. 断言 i：知识库随包分发——真实仓库根打包必含 aquilair-knowledge/sources/ 条目
+    # （断言 d 用临时 skills 目录隔离，天然无知识库可收；本项专验收录功能本身。
+    #   zip 产物落在真实 skills/ 下且已被 .gitignore 排除，零仓库污染）
+    # knowledge_entries：zip 中知识库源文档区条目
+    knowledge_entries = []
+    try:
+        real_zip_path = pack_skill(skill_name, skill_dir.parent)
+        with zipfile.ZipFile(real_zip_path) as zf:
+            knowledge_entries = [
+                entry for entry in zf.namelist() if entry.startswith("aquilair-knowledge/sources/")
+            ]
+        results.append(
+            CheckResult(
+                "i-知识库随包分发",
+                bool(knowledge_entries),
+                f"知识库条目数={len(knowledge_entries)}",
+            )
+        )
+    except Exception as exc:  # 打包器任何异常都构成失败证据，不掩盖
+        results.append(
+            CheckResult("i-知识库随包分发", False, f"{type(exc).__name__}: {exc}")
+        )
     return results
 
 

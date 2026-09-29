@@ -2,8 +2,10 @@
 
 主要 Input：一个或多个技能名（命令行参数，对应仓库 skills/<技能名>/ 目录）。
 主要 Output：skills/<技能名>.zip——SKILL.md 位于压缩包根目录（上传界面硬性要求），
-包含 references/、scripts/ 与 .meta-cache/ 元数据快照（fetch_meta.py 依赖，可重建），
-排除 __pycache__ 编译缓存；条目路径统一正斜杠，避免 Windows 反斜杠导致平台解析失败。
+包含 references/、scripts/ 与 .meta-cache/ 元数据快照（fetch_meta.py 依赖，可重建）；
+另收录仓库知识库源文档区 aquilair-knowledge/sources/（zip 内保持同名坐标，references 的出处标注
+在分发包内可解析溯源链），排除 __pycache__ 编译缓存；条目路径统一正斜杠，
+避免 Windows 反斜杠导致平台解析失败。
 """
 
 import argparse
@@ -15,6 +17,9 @@ from pathlib import Path
 PACK_ITEMS = ("SKILL.md", "references", "scripts", ".meta-cache")
 # EXCLUDED_DIRS：排除目录——Python 编译缓存不进分发包
 EXCLUDED_DIRS = {"__pycache__"}
+# KNOWLEDGE_SOURCE_DIR：知识库源文档区（仓库根相对路径）——随每个技能 zip 分发，
+# zip 内保持 aquilair-knowledge/sources/ 坐标不变，references 出处标注得以在包内溯源
+KNOWLEDGE_SOURCE_DIR = Path("aquilair-knowledge/sources")
 
 
 # ===========一、打包核心==========
@@ -47,6 +52,15 @@ def pack_skill(skill_name: str, skills_dir: Path) -> Path:
                         continue
                     if full.is_file():
                         zf.write(full, full.relative_to(skill_dir).as_posix())
+        # knowledge_root：知识库源文档区绝对路径（skills_dir 的上级即仓库根）
+        knowledge_root = skills_dir.parent / KNOWLEDGE_SOURCE_DIR
+        if knowledge_root.is_dir():
+            for full in sorted(knowledge_root.rglob("*")):
+                if any(part in EXCLUDED_DIRS for part in full.parts):
+                    continue
+                if full.is_file():
+                    # zip 内保持仓库相对坐标（aquilair-knowledge/sources/...），标注可解析
+                    zf.write(full, full.relative_to(skills_dir.parent).as_posix())
     return zip_path
 
 

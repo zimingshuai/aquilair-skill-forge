@@ -1,7 +1,7 @@
 # 评估体系（evals）
 
 > 本目录是 aquilair-skills 的测试集与评估制度。方法论依据见
-> [docs/research/2026-09-17-skill-evaluation.md](../docs/research/2026-09-17-skill-evaluation.md)，
+> [aquilair-knowledge/research/2026-09-17-skill-evaluation.md](../aquilair-knowledge/research/2026-09-17-skill-evaluation.md)，
 > 官方要求：改措辞 / 换宿主模型 / 升级依赖前必须回归，发布前至少 3 个评估、在全部目标模型上测过。
 
 ## 目录
