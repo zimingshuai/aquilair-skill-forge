@@ -18,6 +18,8 @@ skills/aquilair-skill-authoring/references/lint.md 的人工巡检清单）：
   C10 业务技能 references 含出处标注（来源：/出处，新纪律渐进达标）
   C11 域知识库健康检查（aquilair-knowledge/sources/ 每域：编译层三件齐
       ——glossary/index/log，且编译层页面含出处标注；无来源页面即发现，代码判定）
+  C12 枚举型宿主清单一致性（CodeBuddy skills 数组与 skills/ 目录双向校验，
+      漏登记即装包缺技能；其余宿主清单目录扫描自动收录，无需维护）
 """
 
 import json
@@ -217,6 +219,20 @@ def lint_repo(repo_root: Path) -> tuple[list[dict[str, list[tuple[str, str, str]
                     content = page_path.read_text(encoding="utf-8")
                     if "来源：" not in content and "出处" not in content:
                         repo_issues.append((LEVEL_WARN, "C11", f"域 {domain} 编译层 {page} 无出处标注"))
+    #   5. C12 枚举型宿主清单一致性：CodeBuddy 数组与 skills/ 目录双向校验
+    # （多数宿主清单目录扫描自动收录无需维护；CodeBuddy 为枚举数组，漏登记即装包缺技能）
+    codebuddy_manifest = repo_root / ".codebuddy-plugin" / "plugin.json"
+    if codebuddy_manifest.is_file():
+        try:
+            manifest = json.loads(codebuddy_manifest.read_text(encoding="utf-8"))
+            # listed：清单 skills 数组登记的技能名集合（形如 "./skills/<name>"）
+            listed = {entry.rstrip("/").split("/")[-1] for entry in manifest.get("skills", [])}
+            for missing in sorted(known_skills - listed):
+                repo_issues.append((LEVEL_ERROR, "C12", f"CodeBuddy 清单漏登记技能 {missing}（枚举型，须手动/同步加行）"))
+            for stale in sorted(listed - known_skills):
+                repo_issues.append((LEVEL_ERROR, "C12", f"CodeBuddy 清单登记了不存在的技能 {stale}"))
+        except (json.JSONDecodeError, TypeError):
+            repo_issues.append((LEVEL_ERROR, "C12", "CodeBuddy 清单 JSON 解析失败"))
     return per_skill, repo_issues
 
 
@@ -249,10 +265,13 @@ def print_report(
                 error_total += level == LEVEL_ERROR
                 warn_total += level == LEVEL_WARN
     if repo_issues:
-        print("[WARN] 仓库级")
+        repo_verdict = "FAIL" if any(level == LEVEL_ERROR for level, _, _ in repo_issues) else "WARN"
+        print(f"[{repo_verdict}] 仓库级")
         for level, code, message in repo_issues:
-            print(f"  ⚠️ [{level}][{code}] {message}")
-            warn_total += 1
+            marker = "❌" if level == LEVEL_ERROR else "⚠️"
+            print(f"  {marker} [{level}][{code}] {message}")
+            error_total += level == LEVEL_ERROR
+            warn_total += level == LEVEL_WARN
     # pass_total：无问题技能数，用于汇总行
     pass_total = sum(1 for entry in per_skill for issues in entry.values() if not issues)
     verdict = "不通过（存在 ERROR，须修复后交付）" if error_total else "通过（WARN 不阻断，按需整改）"
