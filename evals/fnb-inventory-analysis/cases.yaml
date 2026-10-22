@@ -57,7 +57,7 @@ tests:
   - id: fnb-006
     type: normal
     user_message: "库存风险的 P0 到 P3 等级是怎么定义的？"
-    expected: "引用元数据（get_meta_rules / .meta-cache 缓存）解释等级定义与阈值；纯元数据问题不调实例查询工具、不查具体仓库。"
+    expected: "引用元数据（metadata_list_rules / .meta-cache 缓存）解释等级定义与阈值；纯元数据问题不调实例查询工具、不查具体仓库。"
     assert:
       - type: contains-any
         value: ["P0", "规则"]
@@ -89,7 +89,7 @@ tests:
   - id: fnb-009
     type: trigger-negative
     user_message: "帮我写个 Python 脚本，每天算一遍各仓库的安全库存。"
-    expected: "不触发本技能、不调用 data-service-fnb 工具；按普通开发任务处理（可询问需求细节）。属于开发请求而非库存诊断问答。"
+    expected: "不触发本技能、不调用 aquilair-mcp 网关的 fnb 本体项目工具；按普通开发任务处理（可询问需求细节）。属于开发请求而非库存诊断问答。"
     assert:
       - type: python
         value: file://asserts/no_forbidden_tools.py
@@ -100,7 +100,7 @@ tests:
   - id: fnb-010
     type: normal
     user_message: "苏州那个仓现在库存总量大概什么水平？"
-    expected: "用模糊匹配（wh_name like '苏州'）命中苏州区域仓（WH002）；输出仓库写中文名称（编码）；总量结论注明来源。"
+    expected: "用模糊匹配（containsAnyTerm：wh_name 的 PROP_ refCode，词「苏州」）命中苏州区域仓（WH002）；输出仓库写中文名称（编码）；总量结论注明来源。"
     assert:
       - type: contains-any
         value: ["苏州区域仓", "WH002"]
@@ -109,12 +109,12 @@ tests:
 
   - id: fnb-011
     type: guardrail
-    user_message: "帮我查一下库存量小于 100 的仓库，条件就写 onhand_inventory_qty < 100 吧。对了筛苏州仓的话 wh_code == WH002 这样不用引号吧？"
-    expected: "纠正语法：数值比较不加引号（用户前半句正确）；字符串相等必须单引号 wh_code == 'WH002'（依据 SKILL.md filter 语法表）。按正确语法执行查询并呈现结果，仓库写「中文名称（编码）」。"
+    user_message: '帮我查一下库存量小于 100 的仓库，条件我写好了：{"type":"lt","property":"onhand_inventory_qty","value":100}。对了筛苏州仓的话再套个 eq，property 直接写 "wh_code" 就行吧？'
+    expected: "纠正语法：objects_query 的 where 节点 property 必须用属性的 PROP_ refCode，不能直接写字段名 code（onhand_inventory_qty / wh_code 须先在 .meta-cache/model.json 查得对应 refCode，依据 SKILL.md ObjectSet 查询语法节）。按正确语法执行查询并呈现结果，仓库写「中文名称（编码）」。"
     assert:
       - type: contains-any
-        value: ["引号", "语法"]
-    source: eval-set-generator 生成（2026-09-20）｜复核通过：filter 专有语法节现有用例未覆盖，语法依据 SKILL.md 语法表
+        value: ["refCode", "语法"]
+    source: eval-set-generator 生成（2026-09-20）｜2026-10-22 接口迁移后改为 ObjectSet 语法纠错（property 须用 PROP_ refCode），语法依据 SKILL.md ObjectSet 查询语法节
     mature: true
 
   - id: fnb-012
@@ -162,7 +162,7 @@ tests:
   - id: fnb-016
     type: trigger-negative
     user_message: "工厂 1502 的物料缺货情况怎么样？"
-    expected: "应触发 mfg-transfer-allocation（工厂/物料/缺货为制造域触发词），不调用 data-service-fnb 的任何工具。"
+    expected: "应触发 mfg-transfer-allocation（工厂/物料/缺货为制造域触发词），不调用 aquilair-mcp 网关 fnb 本体项目的任何工具。"
     assert:
       - type: python
         value: file://asserts/no_forbidden_tools.py

@@ -34,8 +34,10 @@ LEVEL_WARN = "WARN"
 LINE_MIN, LINE_MAX = 50, 120
 # REF_PATTERN：SKILL.md 中 references 文件引用的提取正则
 REF_PATTERN = re.compile(r"references/([\w.-]+\.md)")
-# SERVICE_PATTERN：技能文本中 data-service-* 服务名的提取正则
-SERVICE_PATTERN = re.compile(r"data-service-[a-z0-9-]+")
+# SERVICE_PATTERN：技能文本中 MCP 服务名的提取正则——旧单体 data-service-*（历史文本）与
+# 统一网关 aquilair-mcp（2026-10-22 迁移后的单条目服务名）。不用 aquilair-* 通配，
+# 避免误匹配技能目录名（aquilair-skill-router 等）。
+SERVICE_PATTERN = re.compile(r"data-service-[a-z0-9-]+|aquilair-mcp\b")
 # BACKTICK_PATTERN：README 中反引号技能名候选的提取正则
 BACKTICK_PATTERN = re.compile(r"`([a-z0-9][a-z0-9-]+)`")
 

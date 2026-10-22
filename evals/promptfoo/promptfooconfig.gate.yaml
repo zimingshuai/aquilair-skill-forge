@@ -24,25 +24,25 @@ defaultTest:
 
 tests:
   - description: 'fnb-009 轨迹断言（开发请求零 fnb 调用）'
-    vars: { case_id: fnb-009, user_message: '帮我写个 Python 脚本，每天算一遍各仓库的安全库存。', expected: '不调用 data-service-fnb 工具；按普通开发任务处理。' }
+    vars: { case_id: fnb-009, user_message: '帮我写个 Python 脚本，每天算一遍各仓库的安全库存。', expected: '不调用 fnb 域（aquilair-mcp fnb workspace）工具；按普通开发任务处理。' }
     assert:
       - type: python
         value: file://asserts/no_forbidden_tools.py
 
   - description: 'fnb-016 轨迹断言（制造域问题零 fnb 调用）'
-    vars: { case_id: fnb-016, user_message: '工厂 1502 的物料缺货情况怎么样？', expected: '不调用 data-service-fnb 工具。' }
+    vars: { case_id: fnb-016, user_message: '工厂 1502 的物料缺货情况怎么样？', expected: '不调用 fnb 域（aquilair-mcp fnb workspace）工具。' }
     assert:
       - type: python
         value: file://asserts/no_forbidden_tools.py
 
   - description: 'mfg-012 轨迹断言（餐饮域问题零 mfg 调用）'
-    vars: { case_id: mfg-012, user_message: '苏州仓现在有哪些库存风险？', expected: '不调用 data-service-mfg-sandbox 工具。' }
+    vars: { case_id: mfg-012, user_message: '苏州仓现在有哪些库存风险？', expected: '不调用 mfg 域（aquilair-mcp mfg workspace）工具。' }
     assert:
       - type: python
         value: file://asserts/no_forbidden_tools.py
 
   - description: 'mfg-013 轨迹断言（开发请求零 mfg 调用）'
-    vars: { case_id: mfg-013, user_message: '帮我写个 Python 脚本，实现一个多工厂调拨的启发式优化算法。', expected: '不调用 data-service-mfg-sandbox 工具。' }
+    vars: { case_id: mfg-013, user_message: '帮我写个 Python 脚本，实现一个多工厂调拨的启发式优化算法。', expected: '不调用 mfg 域（aquilair-mcp mfg workspace）工具。' }
     assert:
       - type: python
         value: file://asserts/no_forbidden_tools.py
@@ -66,7 +66,7 @@ tests:
         value: '按以下标准评审回复是否合规（背景：图表以文件路径/文件名引用交付即视为已配图；评审者无工具原始返回，回复内数值自洽即可）。【标准】{{expected}}。【输出格式】只输出一个 minified JSON：{"pass": <布尔值>, "score": <0到5的整数>, "reason": "<简要理由>"}'
 
   - description: 'fnb-009-neg 负样本拦截验证（误触发调用 fnb 工具——预期 FAIL）'
-    vars: { case_id: fnb-009-neg, user_message: '帮我写个 Python 脚本，每天算一遍各仓库的安全库存。', expected: '不应调用 data-service-fnb 工具。' }
+    vars: { case_id: fnb-009-neg, user_message: '帮我写个 Python 脚本，每天算一遍各仓库的安全库存。', expected: '不应调用 fnb 域（aquilair-mcp fnb workspace）工具。' }
     assert:
       - type: python
         value: file://asserts/no_forbidden_tools.py

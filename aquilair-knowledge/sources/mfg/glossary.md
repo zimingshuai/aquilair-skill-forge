@@ -21,7 +21,7 @@
 
 | 术语 | 含义 | 出处 |
 | --- | --- | --- |
-| What-if 沙箱 | 生产数据快照的独立推演分支，读写不影响生产 | get_meta_actions（sandbox_execution 约定） |
+| What-if 沙箱 | 生产数据快照的独立推演分支，读写不影响生产（2026-10-22 起实现为统一网关数据分支：objects_create_branch / compare_branch / delete_branch） | get_meta_actions（sandbox_execution 约定）；2026-10-22 统一网关实测 |
 | 确认卡 | 写操作前的五要素确认（环境/动作链/关键参数/影响/不可逆性），用户明确同意才执行 | 技能护栏铁律 |
 | 可调出量 | 工厂物料可供调出的数量；**无可调出量字段时禁止由库存自行扣减推算** | 实测 2026-09-16，get_meta_objects |
 | 预估成本 vs 评估成本 | 逐计划合计 ≠ 方案评估值，两者不一致时并列说明 | 实测 2026-09-16，kpi-caliber Gotchas |

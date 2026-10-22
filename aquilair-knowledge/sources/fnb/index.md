@@ -19,4 +19,4 @@
 | 知识资产 | 位置 | 一行摘要 |
 | --- | --- | --- |
 | 查询剧本与输出模板 | `skills/fnb-inventory-analysis/references/playbook.md` | 场景 A 仓群总览（L0/L1/L2）+ 场景 B 单仓/单 SKU/口径收窄；已带出处标注（2026-09-28 补） |
-| 元数据缓存 | `skills/fnb-inventory-analysis/.meta-cache/` | get_meta_objects / rules / actions 原始 JSON（fetch_meta 产物，2026-09-16 拉取） |
+| 元数据缓存 | `skills/fnb-inventory-analysis/.meta-cache/` | 统一网关 model / rules / actions 原始 JSON（fetch_meta 产物；2026-10-22 起为新工具面拉取，旧 get_meta_* 缓存已废弃清除） |
