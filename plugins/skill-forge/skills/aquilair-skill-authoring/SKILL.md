@@ -12,13 +12,14 @@ skill 工厂「生产端」主技能：新业务领域只需携带 **MCP 服务 
 
 | 端 | 零件 | 所在处 | 职责 |
 | --- | --- | --- | --- |
-| 生产端（本技能） | `skills/aquilair-skill-authoring/` | 本插件（aquilair-skill-forge） | 六步流水线：立项→实测→划界→模板→接线→验收 |
-| 验收端 | `tools/skill-eval-generator/` | 仓库根 tools/ | 按目标技能结构特征生成四类题型草稿（人工复核后转正） |
-| 迭代端 | `skills/aquilair-eval-diagnostics/` | 本插件（aquilair-skill-forge） | 评估 FAIL 归因：A 文档缺陷 / B 模型未遵守 / C 数据问题 / D 断言口径 |
-| 使用端 | `skills/aquilair-skill-router/` | aquilair-business-hub 插件 | 终端业务请求先路由再干活 |
-| 知识端 | `skills/aquilair-knowledge-wiki/` | 本插件（aquilair-skill-forge） | 域知识库摄取/查询/再摄取，为第 1/2 步供料 |
-| 分发 | `tools/pack_skill.py` | 仓库根 tools/ | 技能目录打包 zip（平台要求 SKILL.md 位于 zip 根目录） |
-| 巡检 | `tools/lint_skills.py` | 仓库根 tools/ | 技能资产定期体检：机检接线/引用/行数出报告；语义项走人工清单（见 references/lint.md） |
+| 生产端（本技能） | `skills/aquilair-skill-authoring/` | 本仓库（skill-forge 插件） | 六步流水线：立项→实测→划界→模板→接线→验收 |
+| 验收端 | `tools/skill-eval-generator/` | 本仓库 tools/ | 按目标技能结构特征生成四类题型草稿（人工复核后转正） |
+| 迭代端 | `skills/aquilair-eval-diagnostics/` | 本仓库（skill-forge 插件） | 评估 FAIL 归因：A 文档缺陷 / B 模型未遵守 / C 数据问题 / D 断言口径 |
+| 使用端 | `skills/aquilair-skill-router/` | aquilair-business-hub 仓库 | 终端业务请求先路由再干活 |
+| 知识端 | `skills/aquilair-knowledge-wiki/` | 本仓库（skill-forge 插件） | 域知识库摄取/查询/再摄取，为第 1/2 步供料 |
+| 评估能力 | `evals/`（运行协议 + promptfoo 框架） | 本仓库 | 用例规范、采样纪律、L3 自动化框架（用例数据随被测技能在 hub 仓库） |
+| 分发 | `tools/pack_skill.py` | 本仓库 tools/ | 技能目录打包 zip（平台要求 SKILL.md 位于 zip 根目录） |
+| 巡检 | `tools/lint_skills.py` | 本仓库 tools/ | 技能资产定期体检：机检接线/引用/行数出报告；语义项走人工清单（见 references/lint.md） |
 
 ## 二、阶段判定（可从任意一步进入）
 
@@ -57,7 +58,7 @@ skill 工厂「生产端」主技能：新业务领域只需携带 **MCP 服务 
 
 ### 5. 仓库接线（五处）
 
-① 业务技能落 `plugins/business-hub/skills/`（元技能落 `plugins/skill-forge/skills/`），MCP 服务加进 `plugins/business-hub/.mcp.json`；② 仓库根 `README.md` 技能表加行（CodeBuddy 枚举型清单同步加行，其余宿主目录扫描自动收录，漏登记 lint C12 兜底）；③ `aquilair-skill-router`（business-hub 插件）路由表加行并声明叠加关系——行内容由 LLM 从新技能 description 起草、人工确认后入表（走其第六章接入三步）；④ 仓库根建 `evals/<技能名>/` 用例目录；⑤ 业务知识源文档落仓库根 `aquilair-knowledge/sources/<域名>/`，references 口径逐条标注出处（纪律与格式见该目录 README）。
+① 业务技能以**跨仓 PR** 落 aquilair-business-hub 仓库 `plugins/business-hub/skills/`，MCP 服务加进该仓 `plugins/business-hub/.mcp.json`（元技能落本仓 `plugins/skill-forge/skills/`）；② hub 仓库 `README.md` 技能表加行（其 `.codebuddy-plugin` 枚举型清单同步加行，其余宿主目录扫描自动收录，漏登记其 lint C12 兜底）；③ hub 仓库 `aquilair-skill-router` 路由表加行并声明叠加关系——行内容由 LLM 从新技能 description 起草、人工确认后入表（走其第六章接入三步）；④ 用例目录建在 hub 仓库 `evals/<技能名>/`（用例随被测技能同仓同 PR 演进）；⑤ 业务知识源文档落本仓 `aquilair-knowledge/sources/<域名>/`（知识库主本），references 口径逐条标注出处（纪律与格式见该目录 README）；知识更新后跑 `python tools/sync_knowledge.py <hub仓库路径>` 同步快照供 hub 打包分发。
 
 ### 6. 四类题型验收（不通过不交付）
 

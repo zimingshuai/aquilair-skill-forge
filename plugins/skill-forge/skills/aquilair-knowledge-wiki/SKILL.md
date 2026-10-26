@@ -34,7 +34,7 @@ aquilair-knowledge/sources/<域名>/
 详细剧本见 [`references/ingest.md`](references/ingest.md)，骨架：
 
 1. **文档分类入库**：逐份读上传文档，判类型与所属域 → 原样入 `raw/` → 生成源摘要页；分类存疑标「待人工裁定」。飞书链接先用 lark-cli 拉取再入库（获取通道分流见剧本）。
-2. **MCP 遍历提取**：跑该域技能的 `scripts/fetch_meta.py`（业务技能脚本在 `plugins/business-hub/skills/<技能名>/scripts/`）拉元数据缓存 → 编译实体/动作/规则摘要页（标注「元数据级，未经调用验证」）。
+2. **MCP 遍历提取**：跑该域技能的 `scripts/fetch_meta.py`（业务技能脚本在 aquilair-business-hub 仓库 `plugins/business-hub/skills/<技能名>/scripts/`）拉元数据缓存 → 编译实体/动作/规则摘要页（标注「元数据级，未经调用验证」）。
 3. **实测探针**：只读工具真实调用，逐项记事实卡片（参数坑、filter 语法、读写划分、返回结构、脏数据）。
 4. **编译域知识页**：glossary / index / log 三件。
 5. **联动流水线**：立项证据与铁律原料就位，产出为草稿态，人工复核转正。

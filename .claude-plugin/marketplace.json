@@ -1,0 +1,22 @@
+{
+  "name": "aquilair-forge",
+  "owner": {
+    "name": "Aquilair Team"
+  },
+  "plugins": [
+    {
+      "name": "aquilair-skill-forge",
+      "source": "./plugins/skill-forge",
+      "description": "技能工厂：六步流水线创作、评估失败自诊断与域知识库，供技能开发者产出新业务技能",
+      "version": "0.1.0",
+      "displayName": "Aquilair Skill Forge",
+      "displayName_i18n": {
+        "zh-CN": "Aquilair 业务锻造师"
+      },
+      "description_i18n": {
+        "zh-CN": "技能工厂元技能：六步流水线创作、评估失败自诊断与域知识库，新业务领域携带 MCP 服务与业务知识进厂"
+      },
+      "category": "developer-tools"
+    }
+  ]
+}

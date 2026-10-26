@@ -17,10 +17,10 @@ license: Proprietary — Aquilair 内部分发，仅限公司内网使用
 
 | 层 | 路径 | 用途 |
 | --- | --- | --- |
-| ① 评估报告 | `evals/runs/*.md` | 读「结果矩阵」表（列：用例\|类型\|关键验证点\|判定），筛出 FAIL/可疑用例 |
-| ② 轨迹落盘 | `evals/runs/transcripts/<日期-轮次>.json` | 每用例多次采样的 reply 与 tool_calls 原始轨迹 |
-| ③ 用例定义 | `evals/<目标技能名>/cases.yaml` | 字段 id/type/user_message/expected/source/assert |
-| ④ 目标技能 | `plugins/<插件>/skills/<目标技能名>/SKILL.md` 及 references/（业务技能在 business-hub、元技能在 skill-forge） | 铁律条款——归因对照物（现场读取） |
+| ① 评估报告 | hub 仓库 `evals/runs/*.md` | 读「结果矩阵」表（列：用例\|类型\|关键验证点\|判定），筛出 FAIL/可疑用例 |
+| ② 轨迹落盘 | hub 仓库 `evals/runs/transcripts/<日期-轮次>.json` | 每用例多次采样的 reply 与 tool_calls 原始轨迹 |
+| ③ 用例定义 | hub 仓库 `evals/<目标技能名>/cases.yaml` | 字段 id/type/user_message/expected/source/assert |
+| ④ 目标技能 | 业务技能在 hub 仓库 `plugins/business-hub/skills/<技能名>/SKILL.md` 及 references/（元技能在本仓 `plugins/skill-forge/skills/`） | 铁律条款——归因对照物（现场读取） |
 
 transcripts 读取规则（领域无关）：
 
@@ -83,4 +83,4 @@ transcripts 读取规则（领域无关）：
 
 ## 六、泛化声明
 
-本技能不含任何具体技能的铁律内容——fnb/mfg/ddl 及未来任何新技能的铁律，一律在归因时**现场读取目标技能的 SKILL.md 及 references/**（仓库内位于 `plugins/<插件>/skills/<技能名>/`，业务技能在 business-hub、元技能在 skill-forge）获得。归因分类、流程、证据规范与输出模板全部领域无关；新技能接入 `evals/` 目录后本技能自动适用，无需修改本技能。
+本技能不含任何具体技能的铁律内容——fnb/mfg/ddl 及未来任何新技能的铁律，一律在归因时**现场读取目标技能的 SKILL.md 及 references/**（业务技能在 aquilair-business-hub 仓库 `plugins/business-hub/skills/`、元技能在本仓 `plugins/skill-forge/skills/`）获得。归因分类、流程、证据规范与输出模板全部领域无关；新技能接入 hub 仓库 `evals/` 目录后本技能自动适用，无需修改本技能。

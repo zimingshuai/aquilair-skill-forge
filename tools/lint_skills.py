@@ -4,7 +4,7 @@
 主要 Output：控制台中文巡检报告（按技能列 PASS/WARN/FAIL）+ 进程退出码
 （存在 ERROR 返回 1，可挂 pre-commit / CI；仅 WARN 返回 0 不阻断）。
 
-机检十项（语义项——矛盾/过时/术语漂移——见
+机检十项（语义项——矛盾/过时/术语漂移——见本仓
 plugins/skill-forge/skills/aquilair-skill-authoring/references/lint.md 的人工巡检清单）：
   C1  frontmatter name 与目录名一致
   C2  description 含「Use when」触发句式与边界句（not for / 不属于）
@@ -175,8 +175,8 @@ def lint_repo(repo_root: Path) -> tuple[list[dict[str, list[tuple[str, str, str]
     Returns:
         (逐技能问题清单 [{技能名: 问题列表}]，仓库级问题列表)。
     """
-    #   1. 资产清点与分类事实源读取（双插件目录：business-hub 业务 + skill-forge 元技能）
-    # skill_dirs：技能名 -> 技能目录路径映射（跨双插件目录收集，新技能零改动纳入）
+    #   1. 资产清点与分类事实源读取（扫 plugins/*/skills，本仓库单插件，写法兼容多插件）
+    # skill_dirs：技能名 -> 技能目录路径映射，新技能零改动纳入
     skill_dirs: dict[str, Path] = {}
     for skills_root in sorted(p for p in (repo_root / "plugins").glob("*/skills") if p.is_dir()):
         for entry in skills_root.iterdir():
@@ -185,9 +185,14 @@ def lint_repo(repo_root: Path) -> tuple[list[dict[str, list[tuple[str, str, str]
     known_skills = set(skill_dirs)
     readme_text = (repo_root / "README.md").read_text(encoding="utf-8")
     business, meta = parse_readme_categories(readme_text, known_skills)
-    router_text = (skill_dirs["aquilair-skill-router"] / "SKILL.md").read_text(encoding="utf-8")
-    mcp_path = repo_root / "plugins" / "business-hub" / ".mcp.json"
-    mcp_services = set(json.loads(mcp_path.read_text(encoding="utf-8")).get("mcpServers", {})) if mcp_path.is_file() else set()
+    # router_skill_dir / router_text：路由表技能全文（C7 对照物）。router 随 hub 仓库分发，
+    # 本仓缺失时置空——本仓技能均为元技能（豁免 C7），空串不产生误报
+    router_skill_dir = skill_dirs.get("aquilair-skill-router")
+    router_text = (router_skill_dir / "SKILL.md").read_text(encoding="utf-8") if router_skill_dir else ""
+    # mcp_services：扫全部插件目录 .mcp.json 收集登记服务（本仓库无 MCP 时集合为空，C9 自然跳过）
+    mcp_services = set()
+    for mcp_path in sorted((repo_root / "plugins").glob("*/.mcp.json")):
+        mcp_services |= set(json.loads(mcp_path.read_text(encoding="utf-8")).get("mcpServers", {}))
     evals_dir = repo_root / "evals"
     #   2. 逐技能机检（未进 README 任何章节的目录视为业务技能候选，按 C6 报错）
     per_skill: list[dict[str, list[tuple[str, str, str]]]] = []
