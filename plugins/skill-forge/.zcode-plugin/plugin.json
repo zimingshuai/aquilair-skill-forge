@@ -1,0 +1,9 @@
+{
+  "name": "aquilair-skill-forge",
+  "version": "0.1.0",
+  "description": "天鹰智能中枢（Aquilair）业务锻造师：技能工厂六步流水线、评估失败自诊断与域知识库，供技能开发者产出新业务技能。",
+  "author": {
+    "name": "Aquilair Team"
+  },
+  "skills": "./skills"
+}

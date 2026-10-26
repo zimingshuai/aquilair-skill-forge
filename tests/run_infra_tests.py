@@ -1,6 +1,6 @@
 """插件基础设施测试：自动发现全部技能并逐项断言分发 zip 的结构正确性。
 
-主要 Input：仓库 skills/ 目录下的全部技能目录（自动发现，新技能零改动自动纳入）。
+主要 Input：plugins/*/skills/ 双插件目录下的全部技能目录（自动发现，新技能零改动自动纳入）。
 主要 Output：中文逐技能逐断言 PASS/FAIL/SKIP 报告（====基础设施测试通过/失败==== 定界）；
 进程退出码全过为 0、任一 FAIL 为 1。全程仅在系统临时目录构造打包副本，不在仓库内写任何文件。
 """
@@ -20,8 +20,11 @@ sys.path.insert(0, str(REPO_ROOT))
 
 from tools.pack_skill import PACK_ITEMS, pack_skill
 
-# SKILLS_DIR：被测技能根目录（仓库 skills/）
-SKILLS_DIR = REPO_ROOT / "skills"
+# SKILL_ROOTS：被测技能所在的全部 skills 目录（plugins/<插件>/skills，双插件结构）
+SKILL_ROOTS = sorted(
+    (p for p in (REPO_ROOT / "plugins").glob("*/skills") if p.is_dir()),
+    key=lambda p: p.parent.name,
+)
 
 
 # ===========一、技能发现与 frontmatter 解析==========
@@ -29,7 +32,7 @@ def discover_skills(skills_dir: Path) -> list[str]:
     """自动发现技能目录名列表。
 
     Args:
-        skills_dir: 仓库 skills 目录路径。
+        skills_dir: 技能所在的 skills 目录路径（plugins/<插件>/skills）。
     Returns:
         排序后的技能目录名列表；仅收录普通目录——*.zip 为文件天然被
         is_dir 排除，点开头目录（隐藏目录）显式排除，新技能零改动自动纳入。
@@ -259,18 +262,19 @@ def main() -> int:
     Returns:
         进程退出码：全部 PASS/SKIP 为 0，任一 FAIL 为 1（不汇总放行）。
     """
-    # skill_names：自动发现的技能目录名列表
-    skill_names = discover_skills(SKILLS_DIR)
-    print(f"====基础设施测试开始==== 发现 {len(skill_names)} 个技能: {skill_names}")
     # failed：是否出现任一 FAIL 断言
     failed = False
-    for skill_name in skill_names:
-        print(f"\n[{skill_name}]")
-        for result in check_skill(skill_name, SKILLS_DIR):
-            # status：断言状态字（None 为规格允许的跳过场景）
-            status = "SKIP" if result.ok is None else ("PASS" if result.ok else "FAIL")
-            print(f"  {result.label}: {status} ({result.detail})")
-            failed = failed or result.ok is False
+    for skills_dir in SKILL_ROOTS:
+        # skill_names：当前插件 skills 目录下自动发现的技能目录名列表
+        skill_names = discover_skills(skills_dir)
+        print(f"\n====插件 {skills_dir.parent.name}==== 发现 {len(skill_names)} 个技能: {skill_names}")
+        for skill_name in skill_names:
+            print(f"\n[{skill_name}]")
+            for result in check_skill(skill_name, skills_dir):
+                # status：断言状态字（None 为规格允许的跳过场景）
+                status = "SKIP" if result.ok is None else ("PASS" if result.ok else "FAIL")
+                print(f"  {result.label}: {status} ({result.detail})")
+                failed = failed or result.ok is False
     print()
     if failed:
         print("====基础设施测试失败====")

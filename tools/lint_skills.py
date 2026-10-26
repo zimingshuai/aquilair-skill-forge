@@ -5,7 +5,7 @@
 （存在 ERROR 返回 1，可挂 pre-commit / CI；仅 WARN 返回 0 不阻断）。
 
 机检十项（语义项——矛盾/过时/术语漂移——见
-skills/aquilair-skill-authoring/references/lint.md 的人工巡检清单）：
+plugins/skill-forge/skills/aquilair-skill-authoring/references/lint.md 的人工巡检清单）：
   C1  frontmatter name 与目录名一致
   C2  description 含「Use when」触发句式与边界句（not for / 不属于）
   C3  SKILL.md 行数 50~120（触发即全文加载，超限摊薄注意力）
@@ -18,8 +18,9 @@ skills/aquilair-skill-authoring/references/lint.md 的人工巡检清单）：
   C10 业务技能 references 含出处标注（来源：/出处，新纪律渐进达标）
   C11 域知识库健康检查（aquilair-knowledge/sources/ 每域：编译层三件齐
       ——glossary/index/log，且编译层页面含出处标注；无来源页面即发现，代码判定）
-  C12 枚举型宿主清单一致性（CodeBuddy skills 数组与 skills/ 目录双向校验，
-      漏登记即装包缺技能；其余宿主清单目录扫描自动收录，无需维护）
+  C12 枚举型宿主清单一致性（CodeBuddy skills 数组与 plugins/business-hub/skills/ 目录
+      双向校验——CodeBuddy 只随业务中枢分发；漏登记即装包缺技能；其余宿主清单目录扫描
+      自动收录，无需维护）
 """
 
 import json
@@ -174,20 +175,25 @@ def lint_repo(repo_root: Path) -> tuple[list[dict[str, list[tuple[str, str, str]
     Returns:
         (逐技能问题清单 [{技能名: 问题列表}]，仓库级问题列表)。
     """
-    skills_dir = repo_root / "skills"
-    #   1. 资产清点与分类事实源读取
-    known_skills = {d.name for d in skills_dir.iterdir() if d.is_dir()}
+    #   1. 资产清点与分类事实源读取（双插件目录：business-hub 业务 + skill-forge 元技能）
+    # skill_dirs：技能名 -> 技能目录路径映射（跨双插件目录收集，新技能零改动纳入）
+    skill_dirs: dict[str, Path] = {}
+    for skills_root in sorted(p for p in (repo_root / "plugins").glob("*/skills") if p.is_dir()):
+        for entry in skills_root.iterdir():
+            if entry.is_dir() and not entry.name.startswith("."):
+                skill_dirs[entry.name] = entry
+    known_skills = set(skill_dirs)
     readme_text = (repo_root / "README.md").read_text(encoding="utf-8")
     business, meta = parse_readme_categories(readme_text, known_skills)
-    router_text = (skills_dir / "aquilair-skill-router" / "SKILL.md").read_text(encoding="utf-8")
-    mcp_path = repo_root / ".mcp.json"
+    router_text = (skill_dirs["aquilair-skill-router"] / "SKILL.md").read_text(encoding="utf-8")
+    mcp_path = repo_root / "plugins" / "business-hub" / ".mcp.json"
     mcp_services = set(json.loads(mcp_path.read_text(encoding="utf-8")).get("mcpServers", {})) if mcp_path.is_file() else set()
     evals_dir = repo_root / "evals"
     #   2. 逐技能机检（未进 README 任何章节的目录视为业务技能候选，按 C6 报错）
     per_skill: list[dict[str, list[tuple[str, str, str]]]] = []
     repo_issues: list[tuple[str, str, str]] = []
     for skill_name in sorted(known_skills):
-        skill_dir = skills_dir / skill_name
+        skill_dir = skill_dirs[skill_name]
         skill_file = skill_dir / "SKILL.md"
         if not skill_file.is_file():
             per_skill.append({skill_name: [(LEVEL_ERROR, "C0", "目录缺 SKILL.md，不是合法技能资产")]})
@@ -199,9 +205,9 @@ def lint_repo(repo_root: Path) -> tuple[list[dict[str, list[tuple[str, str, str]
         per_skill.append({skill_name: issues})
     #   3. 仓库级：.mcp.json 死服务检查（登记的服务必须被至少一个技能提及）
     all_skill_text = "\n".join(
-        (skills_dir / s / "SKILL.md").read_text(encoding="utf-8")
+        (skill_dirs[s] / "SKILL.md").read_text(encoding="utf-8")
         for s in sorted(known_skills)
-        if (skills_dir / s / "SKILL.md").is_file()
+        if (skill_dirs[s] / "SKILL.md").is_file()
     )
     mentioned = set(SERVICE_PATTERN.findall(all_skill_text))
     for service in sorted(mcp_services - mentioned):
@@ -221,18 +227,22 @@ def lint_repo(repo_root: Path) -> tuple[list[dict[str, list[tuple[str, str, str]
                     content = page_path.read_text(encoding="utf-8")
                     if "来源：" not in content and "出处" not in content:
                         repo_issues.append((LEVEL_WARN, "C11", f"域 {domain} 编译层 {page} 无出处标注"))
-    #   5. C12 枚举型宿主清单一致性：CodeBuddy 数组与 skills/ 目录双向校验
-    # （多数宿主清单目录扫描自动收录无需维护；CodeBuddy 为枚举数组，漏登记即装包缺技能）
+    #   5. C12 枚举型宿主清单一致性：CodeBuddy 数组与 business-hub 技能目录双向校验
+    # （多数宿主清单目录扫描自动收录无需维护；CodeBuddy 为枚举数组且只随业务中枢分发，
+    #   校验范围是 hub 技能集而非全仓技能——forge 元技能本就不该进 CodeBuddy 清单）
     codebuddy_manifest = repo_root / ".codebuddy-plugin" / "plugin.json"
     if codebuddy_manifest.is_file():
         try:
             manifest = json.loads(codebuddy_manifest.read_text(encoding="utf-8"))
-            # listed：清单 skills 数组登记的技能名集合（形如 "./skills/<name>"）
+            # hub_skills：business-hub 插件的技能名集合（C12 校验范围）
+            hub_skills_dir = repo_root / "plugins" / "business-hub" / "skills"
+            hub_skills = {d.name for d in hub_skills_dir.iterdir() if d.is_dir()} if hub_skills_dir.is_dir() else set()
+            # listed：清单 skills 数组登记的技能名集合（形如 "./plugins/business-hub/skills/<name>"）
             listed = {entry.rstrip("/").split("/")[-1] for entry in manifest.get("skills", [])}
-            for missing in sorted(known_skills - listed):
+            for missing in sorted(hub_skills - listed):
                 repo_issues.append((LEVEL_ERROR, "C12", f"CodeBuddy 清单漏登记技能 {missing}（枚举型，须手动/同步加行）"))
-            for stale in sorted(listed - known_skills):
-                repo_issues.append((LEVEL_ERROR, "C12", f"CodeBuddy 清单登记了不存在的技能 {stale}"))
+            for stale in sorted(listed - hub_skills):
+                repo_issues.append((LEVEL_ERROR, "C12", f"CodeBuddy 清单登记了 hub 不存在的技能 {stale}"))
         except (json.JSONDecodeError, TypeError):
             repo_issues.append((LEVEL_ERROR, "C12", "CodeBuddy 清单 JSON 解析失败"))
     return per_skill, repo_issues

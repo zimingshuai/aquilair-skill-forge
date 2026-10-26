@@ -1,0 +1,81 @@
+---
+name: aquilair-skill-authoring
+description: Aquilair 技能工厂主技能（元技能）——从 0 到 1 开发新技能的六步流水线。Use when the user asks about 开发、新建或改进 Aquilair 技能，把重复工作流固化为技能，写或修改 SKILL.md 与 references，新业务域接入技能工厂——any task about creating, improving, or iterating an Aquilair skill. 仅供技能开发者使用，终端业务问答不经过本技能——not for answering end-user business questions (inventory, transfer, data delivery).
+license: Proprietary — Aquilair 内部分发，仅限公司内网使用
+---
+
+# Aquilair 技能创作（工厂主技能，元技能）
+
+skill 工厂「生产端」主技能：新业务领域只需携带 **MCP 服务 + 业务知识**进入，即可经六步流水线产出业务技能并评估迭代。本技能只管「造技能与改技能」——用技能回答业务问题走 `aquilair-skill-router` 路由，跑评估与失败归因见下方零件表。
+
+## 一、工厂零件图（先知道找谁）
+
+| 端 | 零件 | 所在处 | 职责 |
+| --- | --- | --- | --- |
+| 生产端（本技能） | `skills/aquilair-skill-authoring/` | 本插件（aquilair-skill-forge） | 六步流水线：立项→实测→划界→模板→接线→验收 |
+| 验收端 | `tools/skill-eval-generator/` | 仓库根 tools/ | 按目标技能结构特征生成四类题型草稿（人工复核后转正） |
+| 迭代端 | `skills/aquilair-eval-diagnostics/` | 本插件（aquilair-skill-forge） | 评估 FAIL 归因：A 文档缺陷 / B 模型未遵守 / C 数据问题 / D 断言口径 |
+| 使用端 | `skills/aquilair-skill-router/` | aquilair-business-hub 插件 | 终端业务请求先路由再干活 |
+| 知识端 | `skills/aquilair-knowledge-wiki/` | 本插件（aquilair-skill-forge） | 域知识库摄取/查询/再摄取，为第 1/2 步供料 |
+| 分发 | `tools/pack_skill.py` | 仓库根 tools/ | 技能目录打包 zip（平台要求 SKILL.md 位于 zip 根目录） |
+| 巡检 | `tools/lint_skills.py` | 仓库根 tools/ | 技能资产定期体检：机检接线/引用/行数出报告；语义项走人工清单（见 references/lint.md） |
+
+## 二、阶段判定（可从任意一步进入）
+
+用户不一定从零开始——先判断当前处在哪一步再动手，**不从头重跑流水线**：
+
+| 用户带来的 | 进入点 |
+| --- | --- |
+| 一个想法 / 新业务域 | 第 1 步立项判定 |
+| 业务文档包 + MCP 地址（新域素材） | 先走 `aquilair-knowledge-wiki` 域知识摄取，再回第 1/2 步 |
+| MCP 服务与实测记录 | 第 3 步定位划界 |
+| SKILL.md 草稿 | 第 4 步对照模板审稿，补第 5/6 步 |
+| 评估 FAIL 报告 | 先走迭代端归因，再按结论回跳：A 类→第 4 步改措辞，C 类→开工单，D 类→修用例不修技能 |
+| 已上线技能要加能力 | 第 2 步补实测→第 4 步增量改→第 6 步全量回归 |
+
+## 三、六步流水线（核心流程，前两步占工作量大头）
+
+### 1. 判定立项（三条件 + 四问）
+
+三条件齐备才立项，缺一即停并与用户对齐缺口：**MCP 服务**（数据与动作有服务承载）、**场景重复**（同类问题反复出现，不是一次性需求）、**需行为纪律**（存在禁止自算、写前确认等必须约束的行为）。
+
+立项前问清四问（意图捕获）：①技能要让模型**做什么**；②用户**什么措辞/情境**该触发它；③期望**输出**长什么样；④有无真实**输入输出示例**可锁行为——示例是后续验收用例的种子。
+
+### 2. 实测攒坑（铁律的唯一来源）
+
+新域带着文档包与 MCP 地址进厂时，先走 `aquilair-knowledge-wiki` 的域知识摄取（LLM 自主分类入库 + MCP 遍历 + 实测探针 + 编译域知识页，剧本见该技能 references），产出供给第 1 步立项证据与本步铁律原料。之后真实调用 MCP 的每个工具，逐项记录**事实卡片**：参数坑（如 `sandbox` 必须顶层参数）、filter 语法、读写划分、返回结构与已知脏数据。**铁律只能来自实测踩坑**——拍脑袋写的铁律在评估中必然暴露为不可执行的空条款。
+
+### 3. 定位划界
+
+- 一句话定位，用「读取事实、引用元数据、组织可溯源说明——**不是** XX」句式（如 mfg 的「不是优化器：禁止自行重算」），否定句拦住模型自算倾向。
+- 加「开发/脚本类请求不属于本技能」边界句。
+- **有写操作即升档为受控执行型**：设计确认卡（环境/动作链/关键参数/影响/不可逆性五要素，模板见 references）。
+
+### 4. 套模板产出（新技能是填空，不是创作）
+
+读 [`references/template.md`](references/template.md) 按骨架填空：SKILL.md 控制在 **50~120 行**；场景剧本、Action 明细、KPI 口径拆到 `references/` 按需加载；写操作技能参照 `mfg-transfer-allocation` 增配「数据环境」与「确认与执行流程」两节。
+
+### 5. 仓库接线（五处）
+
+① 业务技能落 `plugins/business-hub/skills/`（元技能落 `plugins/skill-forge/skills/`），MCP 服务加进 `plugins/business-hub/.mcp.json`；② 仓库根 `README.md` 技能表加行（CodeBuddy 枚举型清单同步加行，其余宿主目录扫描自动收录，漏登记 lint C12 兜底）；③ `aquilair-skill-router`（business-hub 插件）路由表加行并声明叠加关系——行内容由 LLM 从新技能 description 起草、人工确认后入表（走其第六章接入三步）；④ 仓库根建 `evals/<技能名>/` 用例目录；⑤ 业务知识源文档落仓库根 `aquilair-knowledge/sources/<域名>/`，references 口径逐条标注出处（纪律与格式见该目录 README）。
+
+### 6. 四类题型验收（不通过不交付）
+
+用验收端生成用例草稿 → 人工逐条复核转正 → 按 `evals/README.md` 跑评估：**正常题**（触发 + 输出规范）、**追问题**（溯源 + 会话内复用）、**陷阱题**（不存在实体不编造不代查）、**护栏题**（确认卡不可跳过）。出题措辞要真实——具体编码、口语化说法、甚至错别字，不用书面腔。FAIL 走迭代端归因，修复哲学见 [`references/iteration.md`](references/iteration.md)；交付前跑 `python tools/pack_skill.py <技能名>` 验证可打包，跑 `python tools/lint_skills.py` 确认巡检无 ERROR。
+
+## 四、反合理化表格（借口 → 反驳）
+
+| 借口 | 反驳 |
+| --- | --- |
+| 「先写个 SKILL.md 草稿，之后实测再补铁律」 | 铁律只能来自实测踩坑；先写后测会把臆测写成铁律，评估时暴露为空条款，返工更大。 |
+| 「fnb 的铁律很全，新技能直接照搬一份」 | 铁律是领域实测产物：句式与骨架可参照，条款必须重铸——照搬会产出本域不可执行的空条款。 |
+| 「内容重要，SKILL.md 写到 150 行没关系」 | SKILL.md 触发即全文加载，超长摊薄注意力；50~120 行装不下的一律拆 references 按需加载。 |
+| 「description 写保守点，免得误触发」 | 模型天然欠触发（under-trigger），description 要写得主动一点；误触发用「not for」边界治，不用保守措辞治。 |
+| 「模型老不守这条规则，加粗 + 全大写再强调一遍」 | 加压前先检查规则是否没讲清 why——「必须 X，否则 Y」远比纯强调有效；顽固问题换框架重述，不堆强制词。 |
+| 「评估已经全绿，微调一下措辞不用回归」 | 同构技能的共享条款（加总边界、输出规范等）任一改动须全量回归；修措辞本身可能引入新回归。 |
+| 「生成器出的用例结构都对，直接转正省时间」 | 生成器只懂结构不懂业务口径，expected 的业务正确性必须人工逐条复核后才能进 cases.yaml。 |
+| 「实测太慢，元数据缓存和文档看看就够了」 | 文档不记录参数坑与脏数据；跳过实测的技能第一个真实会话就会踩坑，铁律成本更高。 |
+
+## 五、泛化声明
+
+本技能的流程、判据与反合理化全部领域无关；新领域进入工厂只需携带 MCP 服务与业务知识，六步流水线零改动适用。fnb / mfg / data-delivery 均为本流水线产物，是填空样板而非特例。

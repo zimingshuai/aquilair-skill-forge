@@ -98,7 +98,7 @@ tests:
 
 ## 失败归因（aquilair-eval-diagnostics）
 
-回归出现 FAIL 或疑似误判时，加载 `skills/aquilair-eval-diagnostics` 做带证据的归因。输入物：`runs/*.md`（结果矩阵）+ `runs/transcripts/*.json`（采样轨迹）+ `evals/<技能>/cases.yaml`（用例定义）+ 目标技能 SKILL.md（铁律）。产出：归因报告（A 文档缺陷 / B 模型未遵守 / C 数据或 MCP / D 断言口径四类定责）与反哺建议（改文档 / 加用例 / 开工单 / 修断言）。
+回归出现 FAIL 或疑似误判时，加载 `plugins/skill-forge/skills/aquilair-eval-diagnostics` 做带证据的归因。输入物：`runs/*.md`（结果矩阵）+ `runs/transcripts/*.json`（采样轨迹）+ `evals/<技能>/cases.yaml`（用例定义）+ 目标技能 SKILL.md（铁律）。产出：归因报告（A 文档缺陷 / B 模型未遵守 / C 数据或 MCP / D 断言口径四类定责）与反哺建议（改文档 / 加用例 / 开工单 / 修断言）。
 
 ## 路线图
 

@@ -134,8 +134,8 @@ def _find_default_targets() -> list:
     Returns:
         evals/*/cases*.yaml 的路径列表；找不到仓库根时返回空列表（由调用方报错）。
     """
-    # marker_name：仓库根标识文件名，逐级向上查找
-    marker_name = ".claude-plugin/plugin.json"
+    # marker_name：仓库根标识文件名，逐级向上查找（双插件拆分后根部只留市场清单）
+    marker_name = ".claude-plugin/marketplace.json"
     current = Path(__file__).resolve().parent
     for ancestor in [current, *current.parents]:
         if (ancestor / marker_name).exists():

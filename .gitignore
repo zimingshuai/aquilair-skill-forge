@@ -4,8 +4,8 @@
 # Python 编译缓存
 **/__pycache__/
 
-# 技能分发 zip（构建产物，用根目录打包脚本随时重建，不入库）
-skills/*.zip
+# 技能分发 zip（构建产物，用根目录打包脚本随时重建，不入库；覆盖双插件目录）
+**/skills/*.zip
 
 # promptfoo 本地依赖（evals/promptfoo/，npm ci 可恢复）
 evals/promptfoo/node_modules/

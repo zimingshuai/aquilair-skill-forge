@@ -18,7 +18,7 @@ license: Proprietary — Aquilair 内部分发，仅限公司内网使用
 
 ## 工作流程（五步，按序执行）
 
-1. **读目标技能**：`skills/<技能名>/SKILL.md` + `references/` 全部文件 + `.meta-cache/meta-objects.json`（实体清单与字段）。缓存缺失先跑该技能的 `fetch_meta.py`。
+1. **读目标技能**：`plugins/<插件>/skills/<技能名>/SKILL.md`（业务技能在 business-hub、元技能在 skill-forge）+ `references/` 全部文件 + `.meta-cache/meta-objects.json`（实体清单与字段）。缓存缺失先跑该技能的 `fetch_meta.py`。
 2. **提取结构特征**（生成规则的唯一输入），逐项记录：
    - 工具表中有无写操作工具（如 `execute_action`、`delete_*`）
    - 有无环境隔离概念（生产/沙箱）
