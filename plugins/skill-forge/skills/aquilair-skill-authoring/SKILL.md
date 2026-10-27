@@ -56,9 +56,11 @@ skill 工厂「生产端」主技能：新业务领域只需携带 **MCP 服务 
 
 读 [`references/template.md`](references/template.md) 按骨架填空：SKILL.md 控制在 **50~120 行**；场景剧本、Action 明细、KPI 口径拆到 `references/` 按需加载；写操作技能参照 `mfg-transfer-allocation` 增配「数据环境」与「确认与执行流程」两节。
 
-### 5. 仓库接线（五处）
+### 5. 仓库接线（五处，落点 = 目标分发仓库）
 
-① 业务技能以**跨仓 PR** 落 aquilair-business-hub 仓库 `plugins/business-hub/skills/`，MCP 服务加进该仓 `plugins/business-hub/.mcp.json`（元技能落本仓 `plugins/skill-forge/skills/`）；② hub 仓库 `README.md` 技能表加行（其 `.codebuddy-plugin` 枚举型清单同步加行，其余宿主目录扫描自动收录，漏登记其 lint C12 兜底）；③ hub 仓库 `aquilair-skill-router` 路由表加行并声明叠加关系——行内容由 LLM 从新技能 description 起草、人工确认后入表（走其第六章接入三步）；④ 用例目录建在 hub 仓库 `evals/<技能名>/`（用例随被测技能同仓同 PR 演进）；⑤ 业务知识源文档落本仓 `aquilair-knowledge/sources/<域名>/`（知识库主本），references 口径逐条标注出处（纪律与格式见该目录 README）；知识更新后跑 `python tools/sync_knowledge.py <hub仓库路径>` 同步快照供 hub 打包分发。
+**目标分发仓库**：承载新技能的业务插件仓库。Aquilair 官方产线默认 `aquilair-business-hub`；外部团队使用本工厂时默认你自己的业务技能插件仓库（下称「目标仓」）。
+
+① 业务技能以**跨仓 PR** 落目标仓技能目录（官方默认 `plugins/business-hub/skills/`），MCP 服务加进目标仓 `.mcp.json`（官方默认 `plugins/business-hub/.mcp.json`；元技能落本仓 `plugins/skill-forge/skills/`）；② 目标仓 `README.md` 技能表加行（枚举型宿主清单如 `.codebuddy-plugin` 同步加行，其余宿主目录扫描自动收录，漏登记其 lint C12 兜底）；③ 目标仓的技能路由表（官方默认 `aquilair-skill-router`）加行并声明叠加关系——行内容由 LLM 从新技能 description 起草、人工确认后入表（走其第六章接入三步；无路由技能的仓库跳过此步）；④ 用例目录建在目标仓 `evals/<技能名>/`（用例随被测技能同仓同 PR 演进）；⑤ 业务知识源文档落**知识库主本**（官方默认本仓 `aquilair-knowledge/sources/<域名>/`；外部团队即你的知识库工作区），references 口径逐条标注出处（纪律与格式见该目录 README）；官方产线知识更新后跑 `python tools/sync_knowledge.py <hub仓库路径>` 同步快照供 hub 打包分发。
 
 ### 6. 四类题型验收（不通过不交付）
 
@@ -79,4 +81,4 @@ skill 工厂「生产端」主技能：新业务领域只需携带 **MCP 服务 
 
 ## 五、泛化声明
 
-本技能的流程、判据与反合理化全部领域无关；新领域进入工厂只需携带 MCP 服务与业务知识，六步流水线零改动适用。fnb / mfg / data-delivery 均为本流水线产物，是填空样板而非特例。
+本技能的流程、判据与反合理化全部领域无关；新领域进入工厂只需携带 MCP 服务与业务知识，六步流水线零改动适用。产出落点也是参数——第 5 步的「目标分发仓库」与「知识库主本」，外部团队默认自己的插件仓库与知识库工作区，Aquilair 仓只是官方实例。fnb / mfg / data-delivery 均为本流水线产物，是填空样板而非特例。
