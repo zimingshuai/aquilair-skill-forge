@@ -41,6 +41,8 @@
 | Claude Code | `/plugin marketplace add <本仓库地址>` → 安装 `aquilair-skill-forge` |
 | ZCode | 插件市场 → 添加市场源（本仓库根目录）→「个人 → aquilair-forge」安装 |
 | Codex | `codex plugin marketplace add <仓库地址>` → `codex plugin add aquilair-skill-forge@aquilair-forge` |
+| 其他 Agent Plugins 兼容智能体 | 同 Claude Code 路线：添加本仓库为插件市场源，装 `aquilair-skill-forge` |
+| 只认 Agent Skills 标准的智能体 | 拷 `plugins/skill-forge/skills/` 下元技能目录到其技能目录（工厂工具链与评估框架需另取本仓 `tools/`、`evals/`） |
 
 本插件不绑 MCP、无 hook（评估/摄取所需的 MCP 连接走宿主会话或各技能自带寻址）。
 
