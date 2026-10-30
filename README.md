@@ -28,6 +28,10 @@
 - 🔍 `aquilair-eval-diagnostics`：评估失败自诊断——读评估报告与 transcripts 轨迹，按四类归因（A 文档缺陷 / B 模型未遵守 / C 数据问题 / D 断言口径）给带证据的反哺建议
 - 📚 `aquilair-knowledge-wiki`：域知识库——喂文档 + MCP 地址自动摄取编译知识库（主本在本仓 `aquilair-knowledge/`），支撑溯源问答与再摄取迭代
 
+### Agent 人设（随插件分发，面向技能开发者）
+
+- ⚒️ `agents/aquilair-skill-smith.md`：业务锻造师「天工」——技能工厂总师人设，编排六步流水线、域知识供料、评估归因与工具链验收；只产草稿与报告，发布权威在开发者。跨宿主接入方式参照 [hub 仓库 agents/README.md](https://code.elitescloud.com/el-aquilair/business-hub)（frontmatter 字段映射通用）。
+
 ### 业务技能（不在本仓库）
 
 终端业务技能（fnb 库存诊断 / mfg 多工厂调拨 / data-delivery 数据交付 / skill-router 路由）在 aquilair-business-hub 仓库分发；接线指引见 authoring 第五步。
@@ -82,6 +86,7 @@ aquilair-skill-forge/
 ├── .claude-plugin/            # 市场清单（marketplace.json，市场名 aquilair-forge）
 ├── plugins/skill-forge/       # 插件本体
 │   ├── .claude-plugin/ .zcode-plugin/ .codex-plugin/   # 三宿主插件清单
+│   ├── agents/                # Agent 人设（业务锻造师「天工」aquilair-skill-smith）
 │   └── skills/                # 3 元技能（authoring / eval-diagnostics / knowledge-wiki）
 ├── evals/                     # 评估能力层：规范主本 + promptfoo 框架（数据层在 hub 仓）
 ├── aquilair-knowledge/        # 知识库主本：sources/ 溯源区 + research/ 调研决策

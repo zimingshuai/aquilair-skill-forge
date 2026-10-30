@@ -8,7 +8,7 @@
       "name": "aquilair-skill-forge",
       "source": "./plugins/skill-forge",
       "description": "技能工厂：六步流水线创作、评估失败自诊断与域知识库，供技能开发者产出新业务技能",
-      "version": "0.1.1",
+      "version": "0.1.3",
       "displayName": "Aquilair Skill Forge",
       "displayName_i18n": {
         "zh-CN": "Aquilair 业务锻造师"
