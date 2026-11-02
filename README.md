@@ -44,6 +44,7 @@
 | --- | --- |
 | Claude Code | `/plugin marketplace add <本仓库地址>` → 安装 `aquilair-skill-forge` |
 | ZCode | 插件市场 → 添加市场源（本仓库根目录）→「个人 → aquilair-forge」安装 |
+| WorkBuddy | `python tools/sync_plugin_assets.py && python tools/adapt_workbuddy.py`（同步运行时资产副本 + 生成 `.codebuddy-plugin` 清单与 agent 扩展键）→ 插件市场添加本仓库根目录为市场源 → 安装「Aquilair 业务锻造师」（细节见 [WORKBUDDY.md](WORKBUDDY.md)） |
 | Codex | `codex plugin marketplace add <仓库地址>` → `codex plugin add aquilair-skill-forge@aquilair-forge` |
 | 其他 Agent Plugins 兼容智能体 | 同 Claude Code 路线：添加本仓库为插件市场源，装 `aquilair-skill-forge` |
 | 只认 Agent Skills 标准的智能体 | 拷 `plugins/skill-forge/skills/` 下元技能目录到其技能目录（工厂工具链与评估框架需另取本仓 `tools/`、`evals/`） |
@@ -77,7 +78,9 @@ python tools/sync_knowledge.py <hub仓库路径>            # 镜像同步快照
 - **pre-commit**：`pip install pre-commit && pre-commit install`（用例格式校验；hub 仓挂同款 vendored 副本）；
 - **lint 巡检**：`python tools/lint_skills.py`（C1~C12 机检 + 仓库级一致性；业务技能侧的 C6/C7/C12 在 hub 仓跑）；
 - **基础设施测试**：`python tests/run_infra_tests.py`（发布前，断言插件结构与分发 zip 规范）；
-- **打包验证**：`python tools/pack_skill.py <技能名>`（SKILL.md 位于 zip 根、知识库随包）。
+- **打包验证**：`python tools/pack_skill.py <技能名>`（SKILL.md 位于 zip 根、知识库随包）；
+- **插件资产同步自检**：`python tools/sync_plugin_assets.py --check`（插件内运行时副本与仓库根源漂移检查——源改了副本没同步即拦截）；
+- **宿主适配自检**：`python tools/adapt_workbuddy.py --check`（WorkBuddy 清单与 agent 扩展键漂移检查）。
 
 ## 目录结构
 

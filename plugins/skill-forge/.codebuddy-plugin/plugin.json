@@ -1,0 +1,74 @@
+{
+  "name": "aquilair-skill-forge",
+  "version": "0.1.5",
+  "description": "天鹰智能中枢（Aquilair）业务锻造师：技能工厂六步流水线、评估失败自诊断与域知识库，供技能开发者产出新业务技能。",
+  "author": {
+    "name": "Aquilair Team"
+  },
+  "homepage": "https://github.com/zimingshuai/aquilair-skill-forge",
+  "keywords": [
+    "aquilair",
+    "skill-forge",
+    "meta-skill",
+    "eval",
+    "knowledge-wiki"
+  ],
+  "category": "开发工具",
+  "license": "Proprietary — Aquilair 内部分发，仅限公司内网使用",
+  "skills": [
+    "./skills/aquilair-eval-diagnostics",
+    "./skills/aquilair-knowledge-wiki",
+    "./skills/aquilair-skill-authoring"
+  ],
+  "agents": [
+    "./agents/aquilair-skill-smith.md"
+  ],
+  "plugin": "aquilair-skill-forge",
+  "displayName": {
+    "en": "Aquilair Skill Smith",
+    "zh": "天鹰·业务锻造师"
+  },
+  "profession": {
+    "en": "Aquilair Skill Factory Master",
+    "zh": "Aquilair 技能工厂总师"
+  },
+  "displayDescription": {
+    "en": "Skill factory master for skill developers: runs the six-step pipeline (init, live-probe, scoping, template, wiring, acceptance), diagnoses failed evals into four evidence-backed categories, and ingests domain knowledge bases. Drafts and reports only - the developer owns promotion and release.",
+    "zh": "面向技能开发者的工厂总师：编排六步流水线（立项→实测→划界→模板→接线→验收）、评估 FAIL 四类带证据归因、域知识库摄取编译。只产草稿与报告，转正与发布由开发者拍板。"
+  },
+  "defaultInitPrompt": {
+    "zh": "把这个新业务域（MCP 服务 + 业务文档包）接入技能工厂，从立项走到验收",
+    "en": "Onboard this new business domain (MCP service + docs) into the skill factory, from init to acceptance."
+  },
+  "tags": [
+    {
+      "en": "Skill Authoring",
+      "zh": "技能创作"
+    },
+    {
+      "en": "Eval Diagnostics",
+      "zh": "评估归因"
+    },
+    {
+      "en": "Knowledge Wiki",
+      "zh": "域知识库"
+    }
+  ],
+  "quickPrompts": [
+    {
+      "zh": "把这个新业务域（MCP 服务 + 业务文档包）接入技能工厂，从立项走到验收",
+      "en": "Onboard this new domain (MCP service + docs) into the skill factory, init to acceptance."
+    },
+    {
+      "zh": "这轮评估回归有 FAIL，帮我读报告和 transcripts，按四类归因给出反哺建议",
+      "en": "This regression has FAILs - read the report and transcripts, attribute them into four categories with evidence."
+    },
+    {
+      "zh": "为指定技能生成四类题型用例草稿，并陪我逐条复核转正",
+      "en": "Generate four-type eval case drafts for a skill and review them with me case by case."
+    }
+  ],
+  "expertType": "agent",
+  "agentName": "aquilair-skill-smith",
+  "avatar": "avatars/expert.png"
+}

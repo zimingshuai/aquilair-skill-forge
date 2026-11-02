@@ -175,16 +175,25 @@ def lint_repo(repo_root: Path) -> tuple[list[dict[str, list[tuple[str, str, str]
     Returns:
         (逐技能问题清单 [{技能名: 问题列表}]，仓库级问题列表)。
     """
-    #   1. 资产清点与分类事实源读取（扫 plugins/*/skills，本仓库单插件，写法兼容多插件）
+    #   1. 资产清点与分类事实源读取（仓库态扫 plugins/*/skills，本仓库单插件，写法兼容多插件；
+    #      插件态——本脚本随插件分发、位于插件根 tools/ 下——退取插件根 skills/）
     # skill_dirs：技能名 -> 技能目录路径映射，新技能零改动纳入
     skill_dirs: dict[str, Path] = {}
-    for skills_root in sorted(p for p in (repo_root / "plugins").glob("*/skills") if p.is_dir()):
+    skills_roots = sorted(p for p in (repo_root / "plugins").glob("*/skills") if p.is_dir())
+    if not skills_roots and (repo_root / "skills").is_dir():
+        skills_roots = [repo_root / "skills"]
+    for skills_root in skills_roots:
         for entry in skills_root.iterdir():
             if entry.is_dir() and not entry.name.startswith("."):
                 skill_dirs[entry.name] = entry
     known_skills = set(skill_dirs)
-    readme_text = (repo_root / "README.md").read_text(encoding="utf-8")
-    business, meta = parse_readme_categories(readme_text, known_skills)
+    readme_path = repo_root / "README.md"
+    if readme_path.is_file():
+        readme_text = readme_path.read_text(encoding="utf-8")
+        business, meta = parse_readme_categories(readme_text, known_skills)
+    else:
+        # 插件态插件根无 README：本插件技能均为元技能，全量按元技能分类，C6 无事实源自然跳过、豁免项照走
+        business, meta = set(), set(known_skills)
     # router_skill_dir / router_text：路由表技能全文（C7 对照物）。router 随 hub 仓库分发，
     # 本仓缺失时置空——本仓技能均为元技能（豁免 C7），空串不产生误报
     router_skill_dir = skill_dirs.get("aquilair-skill-router")
@@ -239,15 +248,17 @@ def lint_repo(repo_root: Path) -> tuple[list[dict[str, list[tuple[str, str, str]
     if codebuddy_manifest.is_file():
         try:
             manifest = json.loads(codebuddy_manifest.read_text(encoding="utf-8"))
-            # hub_skills：business-hub 插件的技能名集合（C12 校验范围）
+            # hub_skills：business-hub 插件的技能名集合（C12 校验范围）；目录不存在
+            # （forge 单插件仓 / 插件安装态）时无事实源，C12 整体跳过不误报
             hub_skills_dir = repo_root / "plugins" / "business-hub" / "skills"
-            hub_skills = {d.name for d in hub_skills_dir.iterdir() if d.is_dir()} if hub_skills_dir.is_dir() else set()
-            # listed：清单 skills 数组登记的技能名集合（形如 "./plugins/business-hub/skills/<name>"）
-            listed = {entry.rstrip("/").split("/")[-1] for entry in manifest.get("skills", [])}
-            for missing in sorted(hub_skills - listed):
-                repo_issues.append((LEVEL_ERROR, "C12", f"CodeBuddy 清单漏登记技能 {missing}（枚举型，须手动/同步加行）"))
-            for stale in sorted(listed - hub_skills):
-                repo_issues.append((LEVEL_ERROR, "C12", f"CodeBuddy 清单登记了 hub 不存在的技能 {stale}"))
+            if hub_skills_dir.is_dir():
+                hub_skills = {d.name for d in hub_skills_dir.iterdir() if d.is_dir()}
+                # listed：清单 skills 数组登记的技能名集合（形如 "./plugins/business-hub/skills/<name>"）
+                listed = {entry.rstrip("/").split("/")[-1] for entry in manifest.get("skills", [])}
+                for missing in sorted(hub_skills - listed):
+                    repo_issues.append((LEVEL_ERROR, "C12", f"CodeBuddy 清单漏登记技能 {missing}（枚举型，须手动/同步加行）"))
+                for stale in sorted(listed - hub_skills):
+                    repo_issues.append((LEVEL_ERROR, "C12", f"CodeBuddy 清单登记了 hub 不存在的技能 {stale}"))
         except (json.JSONDecodeError, TypeError):
             repo_issues.append((LEVEL_ERROR, "C12", "CodeBuddy 清单 JSON 解析失败"))
     return per_skill, repo_issues

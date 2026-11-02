@@ -4,6 +4,7 @@ description: Aquilair 技能评估失败自诊断（元技能）。Use when the 
 license: Proprietary — Aquilair 内部分发，仅限公司内网使用
 ---
 
+
 # Aquilair 评估失败自诊断（元技能）
 
 > skill 工厂「迭代端」零件：评估失败 → 自动归因 → 反哺铁律，形成闭环。

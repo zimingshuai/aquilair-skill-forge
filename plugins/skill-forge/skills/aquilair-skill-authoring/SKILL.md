@@ -4,6 +4,7 @@ description: Aquilair 技能工厂主技能（元技能）——从 0 到 1 开�
 license: Proprietary — Aquilair 内部分发，仅限公司内网使用
 ---
 
+
 # Aquilair 技能创作（工厂主技能，元技能）
 
 skill 工厂「生产端」主技能：新业务领域只需携带 **MCP 服务 + 业务知识**进入，即可经六步流水线产出业务技能并评估迭代。本技能只管「造技能与改技能」——用技能回答业务问题走 `aquilair-skill-router` 路由，跑评估与失败归因见下方零件表。
@@ -20,6 +21,8 @@ skill 工厂「生产端」主技能：新业务领域只需携带 **MCP 服务 
 | 评估能力 | `evals/`（运行协议 + promptfoo 框架） | 本仓库 | 用例规范、采样纪律、L3 自动化框架（用例数据随被测技能在 hub 仓库） |
 | 分发 | `tools/pack_skill.py` | 本仓库 tools/ | 技能目录打包 zip（平台要求 SKILL.md 位于 zip 根目录） |
 | 巡检 | `tools/lint_skills.py` | 本仓库 tools/ | 技能资产定期体检：机检接线/引用/行数出报告；语义项走人工清单（见 references/lint.md） |
+
+> **运行时资产双态**：上表工具（pack / lint / skill-eval-generator）与 `evals/README.md` 运行协议**随插件分发**——插件根下有同名 `tools/` 与 `evals/` 副本（由仓库根 `tools/sync_plugin_assets.py` 同步，`--check` 防漂移）。开发态在仓库根跑、插件安装态在插件根跑，命令形态相同；找不到工具时先确认所在根，不猜路径。知识库主本（`aquilair-knowledge/`）是内容资产**不随插件**——仅随整仓/工具链级安装存在。
 
 ## 二、阶段判定（可从任意一步进入）
 

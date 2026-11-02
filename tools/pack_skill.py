@@ -97,8 +97,12 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     # repo_root：仓库根（脚本位于 tools/ 下，取上一级）
     repo_root = Path(__file__).resolve().parent.parent
-    # skill_roots：双插件下的全部 skills 目录（业务 hub + 锻造 forge），供技能名定位
-    skill_roots = sorted(p for p in (repo_root / "plugins").glob("*/skills") if p.is_dir())
+    # skill_roots：技能根候选——仓库态取 plugins/*/skills（业务 hub + 锻造 forge 双插件）；
+    # 插件态（本脚本随插件分发、位于插件根 tools/ 下，根下无 plugins/）退取插件根 skills/
+    plugin_roots = sorted(p for p in (repo_root / "plugins").glob("*/skills") if p.is_dir())
+    skill_roots = plugin_roots or (
+        [repo_root / "skills"] if (repo_root / "skills").is_dir() else []
+    )
     failed = False
     for skill_name in args.skills:
         # skills_dir：该技能所在的 skills 目录；遍历双插件定位，未找到即报错并列可用技能
