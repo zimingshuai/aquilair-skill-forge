@@ -1,6 +1,6 @@
 # SKILL.md 填空模板（第 4 步专用）
 
-> 参照样板：解释型看 `plugins/business-hub/skills/fnb-inventory-analysis/SKILL.md`，受控执行型看 `plugins/business-hub/skills/mfg-transfer-allocation/SKILL.md`。
+> 参照样板（均在 hub 仓 `aquilair-business-hub` 的 `plugins/business-hub/skills/` 下，跨仓引用、勿在本仓找）：解释型看 `fnb-inventory-analysis/SKILL.md`，受控执行型看 `mfg-transfer-allocation/SKILL.md`，复合型（解释 + 受控执行，references 四层分层首个完整落地）看 `launch-readiness-diagnosis/SKILL.md`。
 
 ## 目录结构约定
 
