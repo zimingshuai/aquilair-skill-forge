@@ -31,8 +31,10 @@ python tools/lint_skills.py
 | C10 | 业务技能 references 含出处标注 | WARN（渐进达标） |
 | C11 | 域知识库健康（每域 glossary/index/log 三件齐 + 编译层含出处标注——无来源页面即发现） | WARN（渐进达标） |
 | C12 | 枚举型宿主清单一致性（CodeBuddy skills 数组 vs `plugins/business-hub/skills/` 目录双向；其余宿主目录扫描无需维护） | ERROR |
+| C13 | 规范合规（agentskills.io）：name 精查（≤64/小写/无首尾与连续连字符）、description ≤1024、compatibility ≤500 且为字符串、metadata 为 string→string 映射 | 前述违例 ERROR |
+| C13 | 技能内 evals 双件（evals.json + trigger-queries.json）齐、scripts/ 脚本有「可用脚本」入口与文件名提及（无孤儿脚本） | WARN（新建必配，存量渐进补齐） |
 
-元技能豁免 C7/C8/C10（不进路由表、不进评估、无业务口径）。
+元技能豁免 C7/C8/C10（不进路由表、不进评估、无业务口径）；C13 对元技能同样生效（2026-11-03 上收 agentskills.io 规范为出厂标准）。
 
 ## 三、人工巡检清单（语义项，机检不可替代）
 

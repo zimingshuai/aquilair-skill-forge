@@ -21,6 +21,11 @@ plugins/skill-forge/skills/aquilair-skill-authoring/references/lint.md 的人工
   C12 枚举型宿主清单一致性（CodeBuddy skills 数组与 plugins/business-hub/skills/ 目录
       双向校验——CodeBuddy 只随业务中枢分发；漏登记即装包缺技能；其余宿主清单目录扫描
       自动收录，无需维护）
+  C13 规范合规（agentskills.io 开放规范，2026-11-03 上收为出厂标准）：
+      name 精查（≤64 字符/无大写/无首尾连字符/无连续连字符——C1 只查与目录名一致）、
+      description ≤1024、compatibility ≤500 且为字符串、metadata 为 string→string 映射
+      （以上 ERROR）；技能内 evals 双件（evals.json + trigger-queries.json）齐、
+      scripts/ 脚本被 SKILL.md「可用脚本」入口提及（以上 WARN——新建技能必配，存量渐进）
 """
 
 import json
@@ -38,7 +43,15 @@ REF_PATTERN = re.compile(r"references/([\w.-]+\.md)")
 # SERVICE_PATTERN：技能文本中 MCP 服务名的提取正则——旧单体 data-service-*（历史文本）与
 # 统一网关 aquilair-mcp（2026-10-22 迁移后的单条目服务名）。不用 aquilair-* 通配，
 # 避免误匹配技能目录名（aquilair-skill-router 等）。
-SERVICE_PATTERN = re.compile(r"data-service-[a-z0-9-]+|aquilair-mcp\b")
+# 2026-11-03 起支持同端点双名过渡态：aquilair-mcp-servers（新技能 launch-dynamic-assurance
+# 使用的网关名）——后缀 (?:-[a-z0-9]+)* 贪婪匹配保证提取完整服务名而非截断前缀
+# （对齐 hub 仓 2026-11-03 修复，双仓副本保持一致）。
+SERVICE_PATTERN = re.compile(r"data-service-[a-z0-9-]+|aquilair-mcp(?:-[a-z0-9]+)*")
+# NAME_MAX_LEN / DESC_MAX_LEN / COMPAT_MAX_LEN：agentskills.io 开放规范对 frontmatter
+# 字段的长度上限（C13 规范合规检查阈值，2026-11-03 上收为出厂标准）
+NAME_MAX_LEN = 64
+DESC_MAX_LEN = 1024
+COMPAT_MAX_LEN = 500
 # BACKTICK_PATTERN：README 中反引号技能名候选的提取正则
 BACKTICK_PATTERN = re.compile(r"`([a-z0-9][a-z0-9-]+)`")
 
@@ -64,6 +77,41 @@ def parse_frontmatter(skill_text: str) -> dict[str, str]:
             key, _, value = line.partition(":")
             result[key.strip()] = value.strip()
     return result
+
+
+def scan_frontmatter_metadata(skill_text: str) -> tuple[bool, bool]:
+    """扫描 frontmatter 的 metadata 子块，判定规范要求的 string→string 映射形态。
+
+    Args:
+        skill_text: SKILL.md 全文。
+    Returns:
+        (metadata 键是否存在, 是否存在非字符串子值)——后者 True 即违反规范
+        （含行内联非空值、列表项等非键值形态的缩进行）。
+    """
+    if not skill_text.startswith("---"):
+        return False, False
+    parts = skill_text.split("---", 2)
+    if len(parts) < 3:
+        return False, False
+    present = False
+    in_metadata = False
+    has_non_string = False
+    for line in parts[1].splitlines():
+        if not line.strip():
+            continue
+        if not line.startswith((" ", "\t")):
+            # 顶层键行：进入 metadata 块；行内联非空值（metadata: "xxx"）非映射形态
+            key, _, inline_value = line.partition(":")
+            in_metadata = key.strip() == "metadata"
+            if in_metadata:
+                present = True
+                if inline_value.strip():
+                    has_non_string = True
+            continue
+        if in_metadata and ":" not in line.strip():
+            # metadata 子块的缩进行非键值形态（列表项等）——子值非字符串
+            has_non_string = True
+    return present, has_non_string
 
 
 def parse_readme_categories(readme_text: str, known_skills: set[str]) -> tuple[set[str], set[str]]:
@@ -98,7 +146,7 @@ def lint_skill(
     mcp_services: set[str],
     evals_dir: Path,
 ) -> list[tuple[str, str, str]]:
-    """对单个技能执行 C1~C10 中适用的机检项。
+    """对单个技能执行 C1~C13 中适用的机检项。
 
     Args:
         skill_name: 技能名（skills/ 下目录名）。
@@ -163,6 +211,42 @@ def lint_skill(
     for service in sorted(set(SERVICE_PATTERN.findall(skill_text))):
         if service not in mcp_services:
             issues.append((LEVEL_ERROR, "C9", f"提及的 MCP 服务 {service} 未在 .mcp.json 登记"))
+    #  10. C13 规范合规（agentskills.io 开放规范，2026-11-03 上收）——frontmatter 字段精查
+    fm_name = frontmatter.get("name", "")
+    if len(fm_name) > NAME_MAX_LEN:
+        issues.append((LEVEL_ERROR, "C13", f"frontmatter name {len(fm_name)} 字符，超规范上限 {NAME_MAX_LEN}（agentskills.io）"))
+    if re.search(r"[A-Z]", fm_name):
+        issues.append((LEVEL_ERROR, "C13", "frontmatter name 含大写字母（规范：小写字母数字与连字符）"))
+    if fm_name.startswith("-") or fm_name.endswith("-"):
+        issues.append((LEVEL_ERROR, "C13", "frontmatter name 首尾为连字符"))
+    if "--" in fm_name:
+        issues.append((LEVEL_ERROR, "C13", "frontmatter name 含连续连字符"))
+    if len(description) > DESC_MAX_LEN:
+        issues.append((LEVEL_ERROR, "C13", f"description {len(description)} 字符，超规范上限 {DESC_MAX_LEN}（agentskills.io）"))
+    compatibility = frontmatter.get("compatibility")
+    if compatibility is not None:
+        if not compatibility:
+            # 空值说明 compatibility 写成了多行映射形态——规范要求单行字符串
+            issues.append((LEVEL_ERROR, "C13", "compatibility 提供但非单行字符串（规范：string）"))
+        elif len(compatibility) > COMPAT_MAX_LEN:
+            issues.append((LEVEL_ERROR, "C13", f"compatibility {len(compatibility)} 字符，超规范上限 {COMPAT_MAX_LEN}"))
+    meta_present, meta_has_non_string = scan_frontmatter_metadata(skill_text)
+    if meta_present and meta_has_non_string:
+        issues.append((LEVEL_ERROR, "C13", "metadata 提供但非 string→string 映射（子值须全为字符串）"))
+    #  11. C13 技能内 evals 双件（agentskills.io 标准格式，随技能目录分发；新建必配，存量渐进补齐）
+    if not (skill_dir / "evals" / "evals.json").is_file():
+        issues.append((LEVEL_WARN, "C13", "缺技能内 evals/evals.json（agentskills.io 标准格式，新建技能必配，存量渐进补齐）"))
+    if not (skill_dir / "evals" / "trigger-queries.json").is_file():
+        issues.append((LEVEL_WARN, "C13", "缺技能内 evals/trigger-queries.json（触发用例集，新建技能必配，存量渐进补齐）"))
+    #  12. C13 孤儿脚本：scripts/ 下可执行脚本须有「可用脚本」入口节且逐文件被 SKILL.md 提及
+    scripts_dir = skill_dir / "scripts"
+    if scripts_dir.is_dir():
+        script_files = sorted(p for p in scripts_dir.iterdir() if p.suffix in (".py", ".sh"))
+        if script_files and "可用脚本" not in skill_text:
+            issues.append((LEVEL_WARN, "C13", "scripts/ 有可执行脚本但 SKILL.md 缺「可用脚本」入口节"))
+        for script_file in script_files:
+            if script_file.name not in skill_text and script_file.stem not in skill_text:
+                issues.append((LEVEL_WARN, "C13", f"scripts/{script_file.name} 未被 SKILL.md 提及（孤儿脚本）"))
     return issues
 
 

@@ -86,6 +86,46 @@ assert 草稿：`contains: "确认"`。
 
 expected 写法统一为「不触发 + 不调用{服务名}工具」；此类用例不写 assert（触发与否靠人审/轨迹判定）。
 
+## 技能内标准双件骨架（agentskills.io 规范，2026-11-03 上收）
+
+第 4 步与 `cases.generated.yaml` 同批产出，写入**目标技能目录** `evals/`（不是仓库级 `evals/<技能名>/`）。样板见 launch-dynamic-assurance/evals/ 双件。
+
+### evals.json 骨架（assertions 占位注释）
+
+```json
+{
+  "_comment": "agentskills.io 标准格式（skill_name + evals[{id,prompt,expected_output,assertions}]），随技能目录分发；权威源仍是目标仓 evals/<技能名>/cases.yaml，两文件双向同步——任一侧改动须同步另一侧。assertions 从 expected 拆 2~4 条可验证句（含/不含什么、来源约束、顺序约束），禁「回答得好」类模糊断言。",
+  "skill_name": "{技能名}",
+  "evals": [
+    {
+      "id": "{前缀}-001",
+      "prompt": "{user_message 原样}",
+      "expected_output": "{expected 原样}",
+      "assertions": [
+        "{从 expected 拆解的可验证断言 1}",
+        "{从 expected 拆解的可验证断言 2}"
+      ]
+    }
+  ]
+}
+```
+
+### trigger-queries.json 骨架（正负例设计要点注释）
+
+```json
+{
+  "_comment": "触发用例集：正负例各 10 条，评估时每条采样 3 次运行统计触发率（正例应触发、负例不应）。正例须含不点名域变体（检验 description pushy 句式覆盖）；负例以 near-miss 为主——开发任务、邻域技能问法、边界任务、近音闲聊，不用明显无关的凑数。",
+  "skill_name": "{技能名}",
+  "queries": [
+    {"query": "{点名核心域词的正例}", "should_trigger": true, "note": "{设计依据}"},
+    {"query": "{不点名域的口语变体正例}", "should_trigger": true, "note": "pushy 句式覆盖点"},
+    {"query": "{near-miss 开发/邻域/边界负例}", "should_trigger": false, "note": "{near-miss 类型与理由}"}
+  ]
+}
+```
+
+双件设计要点：evals.json 的 `prompt` 与 cases.yaml 的 `user_message` 同源同文，`follow_up`（追问型）等扩展字段可收录但两件口径必须一致；trigger-queries 正例至少 3 条直取 description 触发词、至少 4 条为不点名域变体，负例 near-miss 至少 6 条。
+
 ## 自检清单（生成完毕、写盘前逐条过）
 
 - [ ] 每条 user_message 像真实用户会说的话（口语、可不带编码、可有错别字变体）
@@ -94,3 +134,5 @@ expected 写法统一为「不触发 + 不调用{服务名}工具」；此类用
 - [ ] trap 实体已验证不存在或已标注待验证
 - [ ] `zero_tolerance` 标记与 `evals/README.md` 规则一致
 - [ ] `id` 续接不冲突，`source` 标注生成器与日期
+- [ ] 技能内 evals.json 骨架已产出：assertions 从 expected 拆解为 2~4 条可验证句，无模糊断言
+- [ ] 技能内 trigger-queries.json 骨架已产出：正负例各 10 条设计，负例以 near-miss 为主

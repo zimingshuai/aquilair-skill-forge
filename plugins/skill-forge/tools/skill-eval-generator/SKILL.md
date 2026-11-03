@@ -27,7 +27,7 @@ license: Proprietary — Aquilair 内部分发，仅限公司内网使用
    - 名称展示规范（「中文名称（编码）」模式）
    - description 里的触发关键词（正例来源）与相邻业务域（反例来源）
 3. **按配额表生成用例**（见下表；实体从 `.meta-cache` 取样，主键字段做 trap 构造，名称字段做 expected 断言）。措辞模板与变体见 [`references/recipes.md`](references/recipes.md)。
-4. **写入 `evals/<技能名>/cases.generated.yaml`**：沿用 `evals/README.md` 的字段规范，`id` 从现有最大编号续接；每条 `source` 标注「eval-set-generator 生成（YYYY-MM-DD）」。
+4. **写入 `evals/<技能名>/cases.generated.yaml` 与技能内标准双件骨架**：cases 沿用 `evals/README.md` 的字段规范，`id` 从现有最大编号续接，每条 `source` 标注「eval-set-generator 生成（YYYY-MM-DD）」；同时在**目标技能目录** `evals/` 下产出标准双件骨架——`evals.json`（agentskills.io 标准格式，每条从 expected 拆 2~4 条可验证 assertions）与 `trigger-queries.json`（正负例触发用例集骨架）——骨架格式与设计要点见 [`references/recipes.md`](references/recipes.md) 双件小节。双件与 cases.yaml 同 PR 双向同步；cases.yaml 仍是产线权威（回归入口），双件让技能离仓仍可评估（lint C13 机检双件齐备）。
 5. **校验并报告**：运行 `python tools/skill-eval-generator/scripts/validate_cases.py`（校验生成文件与全部现有用例集）；输出报告列出生成清单、每条依据的结构特征、以及**需人工确认的点**（trap 实体存在性、expected 判定标准是否符合业务口径）。
 
 ## 结构特征 → 题型配额表（核心生成规则）

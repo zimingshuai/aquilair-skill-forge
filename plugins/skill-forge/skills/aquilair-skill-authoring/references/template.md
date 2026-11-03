@@ -9,6 +9,7 @@
 ├── SKILL.md          # 必需：核心指令（工具、探查循环、铁律、流程），50~120 行
 ├── references/       # 按需加载，分层承载：接口行为手册 / 业务语义卡 / 场景剧本 / 交付细化
 ├── scripts/          # fetch_meta.py 等可执行助手（有元数据服务时必配）
+├── evals/            # 标准双件：evals.json + trigger-queries.json（agentskills.io 规范，见下节）
 └── assets/           # 模板、夹具等静态资源（目前各技能尚未用到，预留）
 ```
 
@@ -16,9 +17,14 @@
 
 ```yaml
 ---
-name: <kebab-case-技能名，必须与目录名一致>
-description: <一句话中文定位>。Use when the user asks about <中文触发关键词枚举>——any question about <English keywords>. 数据来自 MCP 服务 <服务名>（<只读 / 含写操作，须走确认卡>）。仅限业务问答：<开发类请求不属于本技能>——not for development tasks like <典型开发请求>, even if the topic involves <业务主题>.
+name: <kebab-case-技能名，必须与目录名一致——规范精查：≤64 字符、小写字母数字与连字符、无首尾/连续连字符>
+description: <一句话中文定位>。Use when the user asks about <中文触发关键词枚举>——any question about <English keywords>. 数据来自 MCP 服务 <服务名>（<只读 / 含写操作，须走确认卡>）。仅限业务问答：<开发类请求不属于本技能>——not for development tasks like <典型开发请求>, even if the topic involves <业务主题>.  # ≤1024 字符（lint C13）
 license: Proprietary — Aquilair 内部分发，仅限公司内网使用
+compatibility: <环境依赖一句话，≤500 字符>  # 凡依赖 MCP/内网/特定宿主即必写——缺了跨宿主装上即坏且无从诊断
+metadata:  # 标配三子键，值一律字符串
+  author: Aquilair Team
+  version: "<语义化版本>"
+  workspace: "<本体项目 UUID 或名称>"
 ---
 ```
 
@@ -61,6 +67,31 @@ license: Proprietary — Aquilair 内部分发，仅限公司内网使用
 ```
 
 用户已明确指定生产环境时，环境行与结尾提示改为生产警示（不可逆真实业务写入）。
+
+## 输出模板骨架（数据类回答用模板不用 prose，agentskills.io 输出模板模式）
+
+在 SKILL.md「输出规范」节内联骨架，让模型照抄结构而不是即兴发挥：
+
+```markdown
+# 结论（一段：当前状态 + 关键数字）
+## 证据（表：对象｜字段｜观测值｜来源规则/记录）
+## 溯源（实体.属性 / 规则 refCode 列表）
+## 可视化（图/看板落点 + 落档路径）
+```
+
+## scripts/（可选，结合 MCP 的技能标配）
+
+凡实测发现 agent 将重复执行的模式（元数据预取 / DSL 构造 / 数据校验）即固化脚本，适配要点（样板 = launch-dynamic-assurance/scripts/fetch_meta.py，母版 = fnb v2.0.0）：
+
+- 参数化 `--service / --workspace / --token / --refresh`（+ 可选 `--url` 兜底）；凭证只从环境变量（`AQUILAIR_MCP_TOKEN`）或参数传入，不落盘不进日志。
+- 缓存落技能目录 `.meta-cache/`（运行时生成、入 `.gitignore`）；空清单容错占位（如算法清单空数组写占位说明，不报错）。
+- **SKILL.md 必须列「可用脚本」入口节**（提及文件名与用途——lint C13 查孤儿脚本）；脚本定位为非必需缓存刷新器，缓存与实时冲突以实时为准。
+
+## evals/ 标准双件（agentskills.io 规范，随技能目录分发）
+
+- `evals/evals.json`：标准格式 `{skill_name, evals: [{id, prompt, expected_output, files?, assertions[]}]}`；**assertions 拆解要点**——从 expected 拆 2~4 条可验证句（含/不含什么、来源约束、顺序约束），禁「回答得好」类模糊断言。
+- `evals/trigger-queries.json`：正负例各 10 条（`query / should_trigger / note` 结构）；正例须含**不点名域变体**（「六类齐套搞好了没」式，检验 description pushy 句式）；负例以 **near-miss** 为主（开发任务 / 邻域技能问法 / 边界任务），不用明显无关的凑数。
+- **与目标仓 `evals/<技能名>/cases.yaml` 的关系**：cases.yaml = 产线权威（回归套件入口），技能内双件 = 随技能分发的标准格式（技能离仓仍可评估）；两件**同 PR 双向同步**，任一侧改动须同步另一侧。
 
 ## references 分层标准（第 2 步产物的形态约束，2026-10-30 定标）
 
