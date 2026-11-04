@@ -57,7 +57,7 @@ skill 工厂「生产端」主技能：新业务领域只需携带 **MCP 服务 
 - **数据实态零快照**：数值、条数、状态、回写与否**一律不沉淀**——技能运行时以 MCP 实时查询为唯一事实源（探查循环见第 4 步）。实测原始记录落目标仓 `evals/runs/`，不进技能。
 - **禁止时间戳日志章节**：手册只保留「当前生效版本」；行为变化史、各轮实测与评估叙述写 runs 记录，不进 references（launch 旧 facts 六天 9 个日期章节、190 行日志即反面样板，重构实证见 hub 仓 runs 2026-10-30）。
 
-实测中同步识别「agent 将重复执行的模式」（元数据预取 / DSL 构造 / 数据校验）——固化为 `scripts/` 脚本交技能调用，不再靠 agent 每次现场重造（样板见 launch-dynamic-assurance/scripts/fetch_meta.py）。
+实测中同步识别「agent 将重复执行的模式」（元数据预取 / DSL 构造 / 数据校验）——固化为 `scripts/` 脚本交技能调用，不再靠 agent 每次现场重造（存档架构首选，样板见 launch-dynamic-assurance/scripts/save_meta.py——双架构选择判据见 references/template.md scripts 节）。
 
 ### 3. 定位划界
 
@@ -69,7 +69,7 @@ skill 工厂「生产端」主技能：新业务领域只需携带 **MCP 服务 
 
 读 [`references/template.md`](references/template.md) 按骨架填空：SKILL.md 控制在 **50~120 行**；**每个技能标配「探查循环」段**——以 MCP 实时查询为唯一事实源（不信任何快照、文档记录值或记忆值），元数据先行 → 结合问题规划查询 → 取实例 → 观察是否足以回答、不足迭代，**终止判据 = 足以回答即停**（2026-10-30 用户裁决，回归实证支持）；references 按「接口行为手册 + 业务语义卡 + 剧本 + 交付细化」分层（见第 2 步），场景剧本、Action 明细、KPI 口径拆到 `references/` 按需加载；写操作技能参照 `mfg-transfer-allocation` 增配「数据环境」与「确认与执行流程」两节，确认口径 = 严格停卡（用户首条请求消息不构成确认，知情后同意）。
 
-**规范合规要点（agentskills.io 开放规范，2026-11-03 上收为出厂标准）**：① frontmatter 完整性——name 精查（小写连字符、≤64 字符）、description ≤1024 且主动句式、**凡依赖 MCP/内网/特定宿主必写 `compatibility`**（≤500 字符）、`metadata` 标配 author+version+workspace；② agent 每次重复发明的逻辑固化进 `scripts/`（fetch_meta 模式），SKILL.md 列「可用脚本」入口；③ 技能内 `evals/` 标准双件——evals.json + trigger-queries.json，与目标仓 cases.yaml 同 PR 双向同步；④ 输出用内联模板骨架不用自由 prose。模板与样例见 references/template.md。
+**规范合规要点（agentskills.io 开放规范，2026-11-03 上收为出厂标准）**：① frontmatter 完整性——name 精查（小写连字符、≤64 字符）、description ≤1024 且主动句式、**凡依赖 MCP/内网/特定宿主必写 `compatibility`**（≤500 字符）、`metadata` 标配 author+version+workspace；② agent 每次重复发明的逻辑固化进 `scripts/`（存档架构首选，agent-friendly 设计九条见 references/template.md），SKILL.md 列「可用脚本」入口；③ 技能内 `evals/` 标准双件——evals.json + trigger-queries.json，与目标仓 cases.yaml 同 PR 双向同步；④ 输出用内联模板骨架不用自由 prose。模板与样例见 references/template.md。
 
 ### 5. 仓库接线（五处，落点 = 目标分发仓库）
 
@@ -77,11 +77,15 @@ skill 工厂「生产端」主技能：新业务领域只需携带 **MCP 服务 
 
 ① 业务技能以**跨仓 PR** 落目标仓技能目录（官方默认 `plugins/business-hub/skills/`），MCP 服务加进目标仓 `.mcp.json`（官方默认 `plugins/business-hub/.mcp.json`；元技能落本仓 `plugins/skill-forge/skills/`）；② 目标仓 `README.md` 技能表加行（枚举型宿主清单如 `.codebuddy-plugin` 同步加行，其余宿主目录扫描自动收录，漏登记其 lint C12 兜底）；③ 目标仓的技能路由表（官方默认 `aquilair-skill-router`）加行并声明叠加关系——行内容由 LLM 从新技能 description 起草、人工确认后入表（走其第六章接入三步；无路由技能的仓库跳过此步）；④ 用例目录建在目标仓 `evals/<技能名>/`（用例随被测技能同仓同 PR 演进）；⑤ 业务知识源文档落**知识库主本**（官方默认本仓 `aquilair-knowledge/sources/<域名>/`；外部团队即你的知识库工作区），references 口径逐条标注出处（纪律与格式见该目录 README）；官方产线知识更新后跑 `python tools/sync_knowledge.py <hub仓库路径>` 同步快照供 hub 打包分发。
 
+**跨客户端手装通道（插件分发线之外的轻量通路，agentskills.io 约定）**：技能目录可拷贝装进 `<project>/.agents/skills/` 与 `~/.agents/skills/`（各客户端共享的标准位，客户端专属目录之外）；项目级覆盖用户级（同名冲突记警告）。项目级技能来自可能不可信的仓库——不盲装，先做信任检查（防指令注入）。
+
 ### 6. 四类题型验收（不通过不交付）
 
 用验收端生成用例草稿 → 人工逐条复核转正 → 按 `evals/README.md` 跑评估：**正常题**（触发 + 输出规范）、**追问题**（溯源 + 会话内复用）、**陷阱题**（不存在实体不编造不代查）、**护栏题**（确认卡不可跳过）。出题措辞要真实——具体编码、口语化说法、甚至错别字，不用书面腔。FAIL 走迭代端归因，修复哲学见 [`references/iteration.md`](references/iteration.md)；交付前跑 `python tools/pack_skill.py <技能名>` 验证可打包，跑 `python tools/lint_skills.py` 确认巡检无 ERROR。
 
 **规范合规门（出厂硬门，lint C13 机检）**：C13 全绿 + 技能内触发用例集（trigger-queries.json）齐 + evals.json 在。触发评估按 agentskills.io 方法：正负例各采样 3 次运行统计触发率（正例应触发、near-miss 负例不应），不达标的 description 回第 4 步改写。
+
+**评估增强可选项（官方方法论，复杂域或大改版时启用）**：baseline 对照（with/without skill 或新旧版本，delta 看 pass_rate / 时间 / tokens 三指标）与盲评（两版输出匿名评分）；断言维护纪律——永过断言删、永败断言修、高方差断言加示例（详见 `evals/README.md` 官方方法论对照节）。
 
 ## 四、反合理化表格（借口 → 反驳）
 

@@ -92,6 +92,20 @@ tests:
 
 回归出现 FAIL 或疑似误判时，加载本仓技能 `aquilair-eval-diagnostics` 做带证据的归因。输入物（hub 仓库）：`runs/*.md`（结果矩阵）+ `runs/transcripts/*.json`（采样轨迹）+ `evals/<技能>/cases.yaml`（用例定义）+ 目标技能 SKILL.md（铁律）。产出：归因报告（A 文档缺陷 / B 模型未遵守 / C 数据或 MCP / D 断言口径四类定责）与反哺建议（改文档 / 加用例 / 开工单 / 修断言）。
 
+## 官方评估方法论对照（agentskills.io）
+
+> 依据：[agentskills.io/skill-creation/evaluating-skills](https://agentskills.io/skill-creation/evaluating-skills)（2026-11-04 P11 对照收录）。
+
+**工厂基线（不变）**：四类题型 + pass^3 采样 + runs 记录 + 迭代端四类归因——日常回归与发布门禁按既有协议执行，不因可选项增加流程负担。
+
+**可选增强（按需启用，非门禁）**：
+
+1. **baseline 对照**：with/without skill 或新旧版本各跑一轮，看 delta 三指标——pass_rate / 耗时 / tokens；delta 即技能的收益与成本证据。适用：大改版（措辞重构、架构调整）与复杂域（多 references 分层技能）。
+2. **盲评（blind comparison）**：新旧两版输出匿名编号后人工评分——消除「新版先入为主」偏置。适用：输出形态改动（表格结构、报告口径）效果存疑时。
+3. **断言维护纪律**：定期统计各断言历史通过情况——永过的断言删（已不具辨别力）、永败的断言修（口径错或技能真缺陷，先归因）、skill 过而无 skill 败的断言是技能价值点（保留并在 README 声明）、高方差断言=指令歧义（加字面示例消歧）。
+
+**工作区结构**：baseline 对照的运行产物可参照官方 `iteration-N/with-skill/`、`iteration-N/without-skill/` 布局落 runs 目录，两版产物同轮次可对照。
+
 ## 路线图
 
 | 层 | 内容 | 触发条件 |

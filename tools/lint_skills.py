@@ -23,9 +23,11 @@ plugins/skill-forge/skills/aquilair-skill-authoring/references/lint.md 的人工
       自动收录，无需维护）
   C13 规范合规（agentskills.io 开放规范，2026-11-03 上收为出厂标准）：
       name 精查（≤64 字符/无大写/无首尾连字符/无连续连字符——C1 只查与目录名一致）、
-      description ≤1024、compatibility ≤500 且为字符串、metadata 为 string→string 映射
-      （以上 ERROR）；技能内 evals 双件（evals.json + trigger-queries.json）齐、
-      scripts/ 脚本被 SKILL.md「可用脚本」入口提及（以上 WARN——新建技能必配，存量渐进）
+      description ≤1024、compatibility ≤500 且为字符串、metadata 为 string→string 映射、
+      scripts/ 下 .py 脚本含裸交互调用 input(（agent 非交互 shell 会挂死）（以上 ERROR）；
+      技能内 evals 双件（evals.json + trigger-queries.json）齐、scripts/ 脚本被 SKILL.md
+      「可用脚本」入口提及、.py 脚本超 50 行且无 argparse/sys.argv 等 CLI 痕迹
+      （以上 WARN——新建技能必配，存量渐进）
 """
 
 import json
@@ -52,6 +54,15 @@ SERVICE_PATTERN = re.compile(r"data-service-[a-z0-9-]+|aquilair-mcp(?:-[a-z0-9]+
 NAME_MAX_LEN = 64
 DESC_MAX_LEN = 1024
 COMPAT_MAX_LEN = 500
+# SCRIPT_INPUT_PATTERN：脚本裸交互调用检查正则（C13 agent-friendly 机检，agentskills.io
+# using-scripts 设计九条之一：agent 跑非交互 shell，input() 会挂死整轮调用）——
+# 非注释行匹配即报 ERROR；\b 词边界防 my_input( / some_input( 类误报
+SCRIPT_INPUT_PATTERN = re.compile(r"\binput\s*\(")
+# SCRIPT_CLI_TRACES：CLI 参数化接口的痕迹关键词（C13 agent-friendly 机检——设计九条之
+# 「--help 即接口文档」，无 CLI 痕迹则 --help 无从谈起）；任一命中即视为有接口
+SCRIPT_CLI_TRACES = ("argparse", "getopts", "click", "sys.argv")
+# SCRIPT_MIN_LINES：触发 CLI 痕迹检查的脚本行数门槛（C13）——短工具脚本不强制 CLI 化
+SCRIPT_MIN_LINES = 50
 # BACKTICK_PATTERN：README 中反引号技能名候选的提取正则
 BACKTICK_PATTERN = re.compile(r"`([a-z0-9][a-z0-9-]+)`")
 
@@ -247,6 +258,15 @@ def lint_skill(
         for script_file in script_files:
             if script_file.name not in skill_text and script_file.stem not in skill_text:
                 issues.append((LEVEL_WARN, "C13", f"scripts/{script_file.name} 未被 SKILL.md 提及（孤儿脚本）"))
+            if script_file.suffix != ".py":
+                continue
+            #   13. C13 脚本 agent-friendly 机检（agentskills.io using-scripts 设计九条之可机检两条）
+            # code_lines：剔除 # 注释行后的代码行（注释行的 input( 示例不算实调）
+            code_lines = [ln for ln in script_file.read_text(encoding="utf-8").splitlines() if not ln.lstrip().startswith("#")]
+            if any(SCRIPT_INPUT_PATTERN.search(ln) for ln in code_lines):
+                issues.append((LEVEL_ERROR, "C13", f"scripts/{script_file.name} 含裸交互调用 input(（agent 非交互 shell 会挂死整轮调用——交互输入一律改参数化）"))
+            if len(code_lines) > SCRIPT_MIN_LINES and not any(trace in ln for ln in code_lines for trace in SCRIPT_CLI_TRACES):
+                issues.append((LEVEL_WARN, "C13", f"scripts/{script_file.name} 代码超 {SCRIPT_MIN_LINES} 行且无 argparse/sys.argv 等 CLI 痕迹（--help 无从谈起，补参数化接口）"))
     return issues
 
 

@@ -1,0 +1,86 @@
+{
+  "_comment": "触发评估用例集（agentskills.io 触发评估惯例：正例+负例各 8 条，评估时每条采样多次运行统计触发率，正例应触发、负例不应触发）。P11（2026-11-04）起草，待首轮真实触发评估转正。正例覆盖 FAIL 归因 / transcripts 轨迹分析 / 用例口径争议三类核心场景与口语变体；负例以 near-miss 优先——跑评估（运行协议非归因）、写测试代码、技能新建与改进（authoring 领地）、业务问答。",
+  "skill_name": "aquilair-eval-diagnostics",
+  "queries": [
+    {
+      "query": "评估回归为什么失败，帮我归因",
+      "should_trigger": true,
+      "note": "点名「评估失败归因」，description 触发词原文"
+    },
+    {
+      "query": "fnb-007 这个 FAIL 是模型没遵守还是文档没写清",
+      "should_trigger": true,
+      "note": "单用例 B/A 定类问法——归因分类学核心场景"
+    },
+    {
+      "query": "这几条用例疑似误判，帮我复核下",
+      "should_trigger": true,
+      "note": "「疑似误判复核」——description 触发词原文（假阳性/假阴性复核）"
+    },
+    {
+      "query": "读一下 transcripts，看看写操作是不是落在确认卡之前",
+      "should_trigger": true,
+      "note": "点名「transcripts 轨迹分析」+ phase 判别（before_card 段写调用即违规）"
+    },
+    {
+      "query": "这条轨迹里 tool_calls 的 phase 都是什么意思",
+      "should_trigger": true,
+      "note": "轨迹 phase 语义解读（none/before_card/after_confirm）——transcripts 分析入口"
+    },
+    {
+      "query": "零容忍用例挂了，先看证据再定类",
+      "should_trigger": true,
+      "note": "零容忍类（guardrail/redteam）FAIL 处理，meta.case_type 优先处理纪律"
+    },
+    {
+      "query": "评估报告里的 FAIL 帮我分类汇总下，给反哺建议",
+      "should_trigger": true,
+      "note": "汇总视角（分类计数+反哺行动清单）——输出模板场景"
+    },
+    {
+      "query": "这条 expected 的口径我拿不准，争议怎么裁",
+      "should_trigger": true,
+      "note": "「用例口径争议」——D 断言口径类归因入口"
+    },
+    {
+      "query": "帮我跑一遍 fnb 的全量回归评估",
+      "should_trigger": false,
+      "note": "跑评估本身（not for running evaluations）——运行协议见 evals/README，非归因诊断"
+    },
+    {
+      "query": "写一个 pytest 自动化测试脚本",
+      "should_trigger": false,
+      "note": "写测试代码（开发任务），与 FAIL 归因无关"
+    },
+    {
+      "query": "帮我把这个新业务域做成技能",
+      "should_trigger": false,
+      "note": "技能新建（aquilair-skill-authoring 领地），非归因"
+    },
+    {
+      "query": "给这个技能加一个新场景的能力",
+      "should_trigger": false,
+      "note": "技能改进（authoring 领地——第 2/4 步增量改），非评估归因"
+    },
+    {
+      "query": "SKILL.md 的 description 怎么写才不容易误触发",
+      "should_trigger": false,
+      "note": "技能写作规范（authoring 模板领地），不是评估失败分析"
+    },
+    {
+      "query": "各仓库目前有哪些库存风险",
+      "should_trigger": false,
+      "note": "终端业务问答（fnb 业务技能领地），与评估无关"
+    },
+    {
+      "query": "MCP 服务昨天超时了两次，谁的问题",
+      "should_trigger": false,
+      "note": "数据/服务问题但无评估 FAIL 语境——归因对象是评估用例失败，不是运维排障"
+    },
+    {
+      "query": "把评估结果导出成周报",
+      "should_trigger": false,
+      "note": "文档产出任务，非失败归因分析"
+    }
+  ]
+}

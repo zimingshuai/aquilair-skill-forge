@@ -1,0 +1,36 @@
+{
+  "_comment": "本文件是 agentskills.io 开放规范标准格式（skill_name + evals[{id,prompt,expected_output,assertions}]）的评估用例，随技能目录分发。P11（2026-11-04）从本技能 SKILL.md 真实条款起草，尚未经首轮真实回归——转正前以人工逐条复核为准；条目成熟度以目标仓 cases.yaml 体系（mature 标记）管理，evals.json 标准格式无此字段，故不在此标注。",
+  "skill_name": "aquilair-skill-authoring",
+  "evals": [
+    {
+      "id": "asa-001",
+      "prompt": "我们有个新业务域，MCP 服务和业务文档都齐了，想接进技能工厂，从哪一步开始？",
+      "expected_output": "按阶段判定表分诊：识别为「业务文档包 + MCP 地址（新域素材）」——先走 aquilair-knowledge-wiki 域知识摄取，再回第 1 步立项判定（三条件 + 四问）；不从零重跑流水线。",
+      "assertions": [
+        "识别用户带来的是新域素材（文档包 + MCP 地址），入口为先走 aquilair-knowledge-wiki 域知识摄取",
+        "说明摄取完成后回第 1 步立项判定，并列出三条件（MCP 服务 / 场景重复 / 需行为纪律）",
+        "体现「不从头重跑流水线」的阶段判定原则（可从任意一步进入）"
+      ]
+    },
+    {
+      "id": "asa-002",
+      "prompt": "我写的 SKILL.md 已经 150 行了，内容都挺重要的，怎么办？",
+      "expected_output": "守 50~120 行纪律：先问每段是「每次都需要还是特定场景才需要」——特定场景的拆 references/ 按需加载并在「按需加载」节写清触发条件；不建议硬塞、删内容或放宽上限（反合理化表格有对应反驳）。",
+      "assertions": [
+        "明确行数纪律为 50~120 行，超限必须拆分",
+        "处置方式=按「每次都需要 vs 特定场景才需要」分流，后者拆 references/ 并在按需加载节登记触发条件",
+        "不建议压缩措辞硬塞进上限内，也不放宽行数上限"
+      ]
+    },
+    {
+      "id": "asa-003",
+      "prompt": "新技能第一轮评估跑了，有几个 FAIL，接下来流程怎么走？",
+      "expected_output": "FAIL 先走迭代端 aquilair-eval-diagnostics 四类归因，按结论回跳：A 文档缺陷→第 4 步改措辞，C 数据问题→开工单，D 断言口径→修用例不修技能；不盲修 SKILL.md。",
+      "assertions": [
+        "FAIL 先走迭代端 aquilair-eval-diagnostics 归因（A/B/C/D 四类），不直接改 SKILL.md",
+        "回跳映射正确：A 类→第 4 步改措辞、C 类→开工单、D 类→修用例不修技能",
+        "涉及措辞改动后按回归纪律全量回归再交付"
+      ]
+    }
+  ]
+}

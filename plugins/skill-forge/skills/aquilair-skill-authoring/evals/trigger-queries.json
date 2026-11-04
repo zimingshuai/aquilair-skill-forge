@@ -1,0 +1,106 @@
+{
+  "_comment": "触发评估用例集（agentskills.io 触发评估惯例：正例+负例各 10 条，评估时每条采样多次运行统计触发率，正例应触发、负例不应触发）。P11（2026-11-04）起草，待首轮真实触发评估转正。query 措辞刻意多样：正例覆盖六步流水线各环节问法（新建/改进/阶段判定/打包巡检）与口语变体；负例以 near-miss 优先——终端业务问答（业务技能领地）、本体建模（ontology-forge 领地）、普通编码任务、MCP 数据查询。",
+  "skill_name": "aquilair-skill-authoring",
+  "queries": [
+    {
+      "query": "帮我把这个新业务域接进技能工厂",
+      "should_trigger": true,
+      "note": "点名「接进技能工厂」，六步流水线核心入口"
+    },
+    {
+      "query": "我想把我们组反复做的对账流程固化成一个技能",
+      "should_trigger": true,
+      "note": "「固化重复工作流为技能」——description 触发词原文（defaultPrompt 同款）"
+    },
+    {
+      "query": "这个技能的 SKILL.md 措辞要怎么改才更稳",
+      "should_trigger": true,
+      "note": "改进既有技能的措辞——「写或修改 SKILL.md 与 references」领地"
+    },
+    {
+      "query": "新技能评估跑挂了几个用例，流程上下一步怎么走",
+      "should_trigger": true,
+      "note": "评估 FAIL 后问流程走向——阶段判定表入口（先分诊迭代端再回跳），非纯归因分析"
+    },
+    {
+      "query": "技能写好了，帮我走一遍六步流水线查缺补漏",
+      "should_trigger": true,
+      "note": "点名「六步流水线」，草稿送审场景（第 4 步入口）"
+    },
+    {
+      "query": "给 fnb 技能加一个新场景的能力，要怎么走",
+      "should_trigger": true,
+      "note": "已上线技能加能力——阶段判定表末行（第 2 步补实测→第 4 步增量改→第 6 步全量回归）"
+    },
+    {
+      "query": "SKILL.md 写到 150 行了必须拆吗",
+      "should_trigger": true,
+      "note": "行数纪律问法——第 4 步模板与反合理化表格领地"
+    },
+    {
+      "query": "技能目录打包分发前要做哪些检查",
+      "should_trigger": true,
+      "note": "打包（pack_skill）与巡检（lint）——交付前验收环节"
+    },
+    {
+      "query": "写 SKILL.md 时 description 怎么写才容易触发",
+      "should_trigger": true,
+      "note": "description 写作规范（主动句式/not for 边界）——第 4 步模板领地"
+    },
+    {
+      "query": "把这套重复的库存对账工作流固化为一个新技能",
+      "should_trigger": true,
+      "note": "话题词含「库存」但意图是造技能非答业务——正例边界样本（业务话题的开发请求）"
+    },
+    {
+      "query": "各仓库目前有哪些库存风险",
+      "should_trigger": false,
+      "note": "终端业务问答（fnb-inventory-analysis 领地），description 明示 not for"
+    },
+    {
+      "query": "上海工厂缺货，帮我出个调拨方案",
+      "should_trigger": false,
+      "note": "调拨执行业务问答（mfg-transfer-allocation 领地）"
+    },
+    {
+      "query": "把 NP009 的上市计划数据导出给我",
+      "should_trigger": false,
+      "note": "数据交付任务（aquilair-data-delivery 领地），业务技能领地"
+    },
+    {
+      "query": "帮我把库存领域的业务文档建成本体模型",
+      "should_trigger": false,
+      "note": "本体建模设计（ontology-forge 领地）——文档到本体 DSL，非技能锻造"
+    },
+    {
+      "query": "帮我写一个 Python 数据清洗脚本",
+      "should_trigger": false,
+      "note": "普通编码任务（development tasks），not for 明示"
+    },
+    {
+      "query": "修一下这个 JS 报错",
+      "should_trigger": false,
+      "note": "普通编码任务，与技能工厂无关"
+    },
+    {
+      "query": "查一下 NP009 的上市计划状态",
+      "should_trigger": false,
+      "note": "MCP 业务数据查询（launch 域业务技能领地），非开发任务"
+    },
+    {
+      "query": "这个 workspace 下建了哪些实体和字段",
+      "should_trigger": false,
+      "note": "实时元数据查询（探查循环属业务技能运行时），非造技能"
+    },
+    {
+      "query": "帮我部署一个 MCP 服务",
+      "should_trigger": false,
+      "note": "基础设施开发任务——工厂消费 MCP 服务，不做部署开发"
+    },
+    {
+      "query": "把这个表格转成 markdown",
+      "should_trigger": false,
+      "note": "文档格式处理，与技能开发无关"
+    }
+  ]
+}

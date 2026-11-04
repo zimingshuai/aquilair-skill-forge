@@ -1,0 +1,86 @@
+{
+  "_comment": "触发评估用例集（agentskills.io 触发评估惯例：正例+负例各 8 条，评估时每条采样多次运行统计触发率，正例应触发、负例不应触发）。P11（2026-11-04）起草，待首轮真实触发评估转正。正例覆盖摄取入库 / 域术语溯源问答 / 再摄取更新 / 快照同步四类场景与口语变体；负例以 near-miss 优先——直接答业务数据（业务技能领地）、实时元数据查询（不走知识库）、文档转格式、建站、authoring 领地。",
+  "skill_name": "aquilair-knowledge-wiki",
+  "queries": [
+    {
+      "query": "这批业务文档帮我建个知识库",
+      "should_trigger": true,
+      "note": "点名「喂文档建知识库」，摄取（ingest）核心入口"
+    },
+    {
+      "query": "供应链这批操作手册归档进知识库，以后要查口径",
+      "should_trigger": true,
+      "note": "文档归档+溯源诉求——摄取入口口语变体"
+    },
+    {
+      "query": "工厂物料这块的术语都有哪些口语说法",
+      "should_trigger": true,
+      "note": "域术语溯源问答——glossary 编译层检索场景"
+    },
+    {
+      "query": "这个判定口径是从哪份文档来的，帮我溯源",
+      "should_trigger": true,
+      "note": "点名「口径出处溯源」——description 触发词原文"
+    },
+    {
+      "query": "InventoryRisk 的 display_name 疑似缺陷这个记录在哪",
+      "should_trigger": true,
+      "note": "编译知识（脏数据记录）溯源——SKILL.md 第四章原例"
+    },
+    {
+      "query": "MCP 服务升级了，知识库重新摄取一下",
+      "should_trigger": true,
+      "note": "点名「再摄取更新」——迭代引擎入口"
+    },
+    {
+      "query": "再摄取的过时候审清单给我看看",
+      "should_trigger": true,
+      "note": "候审清单查看——再摄取流程中段场景"
+    },
+    {
+      "query": "知识主本更新完了，把快照同步给 hub 那边",
+      "should_trigger": true,
+      "note": "知识快照同步（sync_knowledge 推送）——知识端与 hub 分发衔接场景"
+    },
+    {
+      "query": "上海仓库现在缺什么料",
+      "should_trigger": false,
+      "note": "直接答业务数据（业务技能领地）——知识库只答编译知识不答实时数据"
+    },
+    {
+      "query": "这个 workspace 下建了哪些实体和字段",
+      "should_trigger": false,
+      "note": "实时元数据查询（get_meta_* / .meta-cache 路径）——数据分层裁决不走知识库"
+    },
+    {
+      "query": "NP009 上市计划现在的状态怎么样",
+      "should_trigger": false,
+      "note": "实时业务数据问答（launch 业务技能领地）"
+    },
+    {
+      "query": "帮我把这批 PDF 转成 Word",
+      "should_trigger": false,
+      "note": "文档转格式（格式处理工具活），非知识摄取编译"
+    },
+    {
+      "query": "帮我搭一个内部 wiki 网站",
+      "should_trigger": false,
+      "note": "知识库建站（工程开发），本技能是摄取编译不是站点搭建"
+    },
+    {
+      "query": "把文档里的补货规则写成代码实现",
+      "should_trigger": false,
+      "note": "编码任务——知识到代码的转化不属本技能（not for 开发）"
+    },
+    {
+      "query": "帮我把这个新业务域做成技能",
+      "should_trigger": false,
+      "note": "技能创作（aquilair-skill-authoring 领地）——not for 明示"
+    },
+    {
+      "query": "评估回归的 FAIL 帮我归因一下",
+      "should_trigger": false,
+      "note": "评估归因（aquilair-eval-diagnostics 领地），与知识库无关"
+    }
+  ]
+}
