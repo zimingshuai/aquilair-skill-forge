@@ -42,6 +42,18 @@ python tools/lint_skills.py               # 巡检必须仍为 0 ERROR（仓库�
 宿主侧的插件副本在 `%USERPROFILE%\.workbuddy\plugins\cache\aquilair-forge\aquilair-skill-forge\<版本>\`，
 是安装时点的快照；脚本改动后在插件市场里更新该插件（或删掉缓存目录重装）才会生效。
 
+**专家卡（「我的专家」）单独注册**：WorkBuddy 的专家中心只扫描 `my-experts` 本地市场
+（`%USERPROFILE%\.workbuddy\plugins\marketplaces\my-experts\`）——按该市场 `marketplace.json`
+的插件条目逐个读清单，再与用户 `experts\custom\<uid>\experts.json` 的 id 求交集。
+注册成独立市场 `aquilair-forge` 只会让**技能**生效，**专家卡不显示**。解决办法：
+
+```bash
+python tools/register_workbuddy_expert.py          # 仓库插件 → my-experts 副本 + 市场登记 + 专家 id（幂等）
+python tools/register_workbuddy_expert.py --check  # 只校验：漂移退出码 1
+```
+
+改完重启 WorkBuddy 生效。升级版本后重跑一次即可（脚本按当前清单版本更新登记条目）。
+
 ## 四、已知限制
 
 - **CLI 的 `plugin` 子命令在桌面端运行期间不可用**：它会尝试绑定桌面端已占用的本地端口（本机为 2829），
