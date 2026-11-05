@@ -7,7 +7,7 @@
 
 判定逻辑（2026-10-22 统一网关迁移后双通道，任一命中即违规）：
     1. 工具名前缀命中（旧单体服务轨迹：data-service-* 前缀，历史回放样本仍适用）；
-    2. 调用参数 workspace_id 命中禁用域（新网关轨迹：fnb/mfg 共用服务名 aquilair-mcp，
+    2. 调用参数 workspace_id 命中禁用域（新网关轨迹：fnb/mfg 共用服务名 aquilair-mcp-servers，
        按各技能 SKILL.md 固化的 workspace UUID 区分域，跨域即违规）；
     纯文本样本（无 tool_calls 结构）视为未调用，直接通过。
 返回 GradingResult（pass/score/reason）。

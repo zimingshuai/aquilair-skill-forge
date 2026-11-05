@@ -128,7 +128,7 @@ tests:
   vars:
     case_id: fnb-009
     user_message: 帮我写个 Python 脚本，每天算一遍各仓库的安全库存。
-    expected: 不触发本技能、不调用 aquilair-mcp 网关的 fnb 本体项目工具；按普通开发任务处理（可询问需求细节）。属于开发请求而非库存诊断问答。
+    expected: 不触发本技能、不调用 aquilair-mcp-servers 网关的 fnb 本体项目工具；按普通开发任务处理（可询问需求细节）。属于开发请求而非库存诊断问答。
     case_type: trigger-negative
     type: trigger-negative
     mature: true
@@ -230,7 +230,7 @@ tests:
   vars:
     case_id: fnb-016
     user_message: 工厂 1502 的物料缺货情况怎么样？
-    expected: 应触发 mfg-transfer-allocation（工厂/物料/缺货为制造域触发词），不调用 aquilair-mcp 网关 fnb 本体项目的任何工具。
+    expected: 应触发 mfg-transfer-allocation（工厂/物料/缺货为制造域触发词），不调用 aquilair-mcp-servers 网关 fnb 本体项目的任何工具。
     case_type: trigger-negative
     type: trigger-negative
     mature: true

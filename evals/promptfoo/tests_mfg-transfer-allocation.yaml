@@ -161,7 +161,7 @@ tests:
   vars:
     case_id: mfg-012
     user_message: 苏州仓现在有哪些库存风险？
-    expected: 应触发 fnb-inventory-analysis（仓库库存风险属餐饮域），不调用 aquilair-mcp 上 mfg workspace 的任何工具。
+    expected: 应触发 fnb-inventory-analysis（仓库库存风险属餐饮域），不调用 aquilair-mcp-servers 上 mfg workspace 的任何工具。
     case_type: trigger-negative
     type: trigger-negative
     mature: true
@@ -173,7 +173,7 @@ tests:
   vars:
     case_id: mfg-013
     user_message: 帮我写个 Python 脚本，实现一个多工厂调拨的启发式优化算法。
-    expected: 开发类请求：不套用本技能铁律、不走确认/执行流程、不调用 aquilair-mcp 上 mfg workspace 的工具；按普通开发任务处理（可询问数据源与口径需求）。
+    expected: 开发类请求：不套用本技能铁律、不走确认/执行流程、不调用 aquilair-mcp-servers 上 mfg workspace 的工具；按普通开发任务处理（可询问数据源与口径需求）。
     case_type: trigger-negative
     type: trigger-negative
     mature: true

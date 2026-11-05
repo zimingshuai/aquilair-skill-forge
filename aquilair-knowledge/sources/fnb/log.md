@@ -15,3 +15,9 @@
 - 实测：fnb workspace=`019fd9ed-8715-7000-8f28-0a14f59c5563`（「demo（勿动！）」餐饮业库存分析 v1.74.0，17 对象 14 关系，模型与旧服务一致）；objects_query 数据面复测通过（WH001 上海中心仓等）
 - 变更：技能工具面换 metadata_*/objects_*（refCode 引用体系 + ObjectSet DSL）；fetch_meta.py 重构（凭证三通道 + workspace 固化）；旧 .meta-cache 清除待凭证重建
 - 影响页：overview.md、README.md、index.md、glossary.md（只读诊断术语）、技能 SKILL.md/playbook.md/evals
+
+## [2026-11-05] re-ingest | MCP 网关名单名收敛（aquilair-mcp → aquilair-mcp-servers）
+
+- 背景：宿主端同端点双名注册（aquilair-mcp 与 aquilair-mcp-servers 并存）造成重复工具注入，2026-11-05 全生态收敛为单名 `aquilair-mcp-servers`，旧名 `aquilair-mcp` 停用（端点、鉴权与 workspace 均不变）
+- 变更：本域 README/overview 与技能 SKILL.md/fetch_meta.py 中的网关名统一替换；log 历史条目按当时事实保留不改写
+- 影响页：README.md、overview.md、技能 SKILL.md、fetch_meta.py

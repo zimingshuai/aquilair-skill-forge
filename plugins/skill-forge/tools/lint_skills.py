@@ -43,11 +43,11 @@ LINE_MIN, LINE_MAX = 50, 120
 # REF_PATTERN：SKILL.md 中 references 文件引用的提取正则
 REF_PATTERN = re.compile(r"references/([\w.-]+\.md)")
 # SERVICE_PATTERN：技能文本中 MCP 服务名的提取正则——旧单体 data-service-*（历史文本）与
-# 统一网关 aquilair-mcp（2026-10-22 迁移后的单条目服务名）。不用 aquilair-* 通配，
-# 避免误匹配技能目录名（aquilair-skill-router 等）。
-# 2026-11-03 起支持同端点双名过渡态：aquilair-mcp-servers（新技能 launch-dynamic-assurance
-# 使用的网关名）——后缀 (?:-[a-z0-9]+)* 贪婪匹配保证提取完整服务名而非截断前缀
-# （对齐 hub 仓 2026-11-03 修复，双仓副本保持一致）。
+# 统一网关 aquilair-mcp-servers（2026-11-05 起唯一服务名；同日停用 2026-10-22 迁移期
+# 旧名 aquilair-mcp 与 2026-11-03~11-05 双名过渡态）。不用 aquilair-* 通配，
+# 避免误匹配技能目录名（aquilair-skill-router 等）——后缀 (?:-[a-z0-9]+)* 贪婪匹配
+# 保证提取完整服务名而非截断前缀（兼容历史文本中的旧名）
+# （对齐 hub 仓 2026-11-05 收敛，双仓副本保持一致）。
 SERVICE_PATTERN = re.compile(r"data-service-[a-z0-9-]+|aquilair-mcp(?:-[a-z0-9]+)*")
 # NAME_MAX_LEN / DESC_MAX_LEN / COMPAT_MAX_LEN：agentskills.io 开放规范对 frontmatter
 # 字段的长度上限（C13 规范合规检查阈值，2026-11-03 上收为出厂标准）

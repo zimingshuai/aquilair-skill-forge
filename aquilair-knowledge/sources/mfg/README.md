@@ -1,6 +1,6 @@
 # mfg 域源文档
 
-生产制造调拨（统一 MCP 网关 `aquilair-mcp` 的 mfg 本体项目；2026-10-22 前为单体服务 `data-service-mfg-sandbox`）域的知识库：原始层 `raw/`（业务方文档原样落位）+ 编译层（[`glossary.md`](glossary.md) 术语表、[`index.md`](index.md) 索引、[`log.md`](log.md) 摄取日志）。
+生产制造调拨（统一 MCP 网关 `aquilair-mcp-servers` 的 mfg 本体项目；2026-10-22 前为单体服务 `data-service-mfg-sandbox`）域的知识库：原始层 `raw/`（业务方文档原样落位）+ 编译层（[`glossary.md`](glossary.md) 术语表、[`index.md`](index.md) 索引、[`log.md`](log.md) 摄取日志）。
 
 ## purpose（本域为什么存在）
 

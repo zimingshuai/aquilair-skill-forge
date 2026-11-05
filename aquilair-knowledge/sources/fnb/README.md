@@ -1,6 +1,6 @@
 # fnb 域源文档
 
-餐饮供应链（统一 MCP 网关 `aquilair-mcp` 的 fnb 本体项目；2026-10-22 前为单体服务 `data-service-fnb`）域的知识库（原始层 + 编译层，结构见 [`../README.md`](../README.md)）。
+餐饮供应链（统一 MCP 网关 `aquilair-mcp-servers` 的 fnb 本体项目；2026-10-22 前为单体服务 `data-service-fnb`）域的知识库（原始层 + 编译层，结构见 [`../README.md`](../README.md)）。
 
 ## purpose（本域为什么存在）
 
