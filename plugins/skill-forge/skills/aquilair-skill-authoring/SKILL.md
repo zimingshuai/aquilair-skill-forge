@@ -67,7 +67,7 @@ skill 工厂「生产端」主技能：新业务领域只需携带 **MCP 服务 
 
 ### 4. 套模板产出（新技能是填空，不是创作）
 
-读 [`references/template.md`](references/template.md) 按骨架填空：SKILL.md 控制在 **50~120 行**；**每个技能标配「探查循环」段**——以 MCP 实时查询为唯一事实源（不信任何快照、文档记录值或记忆值），元数据先行 → 结合问题规划查询 → 取实例 → 观察是否足以回答、不足迭代，**终止判据 = 足以回答即停**（2026-10-30 用户裁决，回归实证支持）；references 按「接口行为手册 + 业务语义卡 + 剧本 + 交付细化」分层（见第 2 步），场景剧本、Action 明细、KPI 口径拆到 `references/` 按需加载；写操作技能参照 `mfg-transfer-allocation` 增配「数据环境」与「确认与执行流程」两节，确认口径 = 严格停卡（用户首条请求消息不构成确认，知情后同意）。
+读 [`references/template.md`](references/template.md) 与**模板三件套**（[`references/templates/`](references/templates/)：skeleton 机制骨架 / delivery-assets 交付资产基线 / knowledge-criteria 三类知识判据卡）填空出厂：SKILL.md 控制在 **50~120 行**、机制段以 `templates/skeleton/SKILL.md` 为准——探查循环六步（**推理依据=实时元数据四类定义**：关系定路径/规则定判定面（注册规则输入并集现查推导）/动作定验证出口；定义先行即落缓存、分页取齐再写合计、未知出口出诊断卡；2026-11-16 用户裁决，launch v0.3.1 双子代理行为评估通过）；references 新范式**两件套**（facts 接口坑 + calibers 口径，打法不落档——判据三问见 templates/knowledge-criteria.md）；**交付资产整目录 fork**（delivery.md + 渲染四件进技能 `references/`+`scripts/`——各技能自含交付、互不引用，第一版同源后自治演化）；写操作技能增配「数据环境」与「写操作确认」两节，确认口径 = 严格停卡（用户首条请求消息不构成确认，知情后同意）。**模板治理：三件套改动仅用户明确发起，已 fork 技能不自动追。**
 
 **规范合规要点（agentskills.io 开放规范，2026-11-03 上收为出厂标准）**：① frontmatter 完整性——name 精查（小写连字符、≤64 字符）、description ≤1024 且主动句式、**凡依赖 MCP/内网/特定宿主必写 `compatibility`**（≤500 字符）、`metadata` 标配 author+version+workspace；② agent 每次重复发明的逻辑固化进 `scripts/`（存档架构首选，agent-friendly 设计九条见 references/template.md），SKILL.md 列「可用脚本」入口；③ 技能内 `evals/` 标准双件——evals.json + trigger-queries.json，与目标仓 cases.yaml 同 PR 双向同步；④ 输出用内联模板骨架不用自由 prose。模板与样例见 references/template.md。
 
