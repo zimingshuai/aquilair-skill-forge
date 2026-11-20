@@ -130,6 +130,13 @@ def release(repo: Path, version: str, note: str, also: list, dry_run: bool) -> i
         return 1
     remote = _upstream_remote(repo)
     has_local, local_sha, has_remote = _tag_state(repo, version, remote)
+    #   安全校验先行（dry-run 也必须暴露）：本地 tag 已存在且不指向 HEAD = 版本号复用
+    if has_local:
+        head_sha = _git(repo, "rev-parse", "HEAD")[:12]
+        if local_sha != head_sha:
+            print(f"====拒绝发版====: {version} 已指向 {local_sha} 而非 HEAD {head_sha}"
+                  f"（版本号不可变，不得复用）", file=sys.stderr)
+            return 1
     need_section = not _version_section_exists(repo, version)
     if need_section and not note:
         print(f"====拒绝发版====: {version} 无版本节且未提供 --note 要点", file=sys.stderr)
@@ -147,14 +154,8 @@ def release(repo: Path, version: str, note: str, also: list, dry_run: bool) -> i
         _append_version_section(repo, version, note)
         _git(repo, "add", "CHANGELOG.md")
         _git(repo, "commit", "-m", f"chore(release): 发版 {version}——版本节+发版 tag")
-    #   3. 打 tag：本地已有则核对指向（不一致=版本号复用，拒绝），无则打在当前 HEAD
-    if has_local:
-        head_sha = _git(repo, "rev-parse", "HEAD")[:12]
-        if local_sha != head_sha:
-            print(f"====拒绝发版====: {version} 已指向 {local_sha} 而非 HEAD {head_sha}"
-                  f"（版本号不可变，不得复用）", file=sys.stderr)
-            return 1
-    else:
+    #   3. 打 tag（指向核对已前置到安全校验，此处仅新建）
+    if not has_local:
         _git(repo, "tag", version)
         print(f"====tag已打====: {version} @ HEAD")
     #   4. 推发版 tag 到上游远程与镜像（镜像失败不回滚，如实上报）
