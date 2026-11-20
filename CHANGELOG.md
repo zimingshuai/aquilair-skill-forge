@@ -7,6 +7,10 @@
 > 禁用 `git reset --hard` 直推远程（违反只进不退）。
 > 各节倒序排列（最新在上）；版本号不可变、只进不退。
 
+## push/2026-11-20.3（2026-11-20 10:42）｜1 commits
+- `023d8fb` docs(authoring): 接线步补 MCP 双环境约定（dev 仓 aquilair-mcp-servers-dev / 发版仓 aquilair-mcp-servers，技能内不写死端点）
+> 要点：MCP 双环境约定入工厂接线规范
+
 ## push/2026-11-20.2（2026-11-20 10:31）｜1 commits
 - `eb2da2f` fix(tools): push_record 相对路径 resolve——仓名显示为空修复
 > 要点：修复相对路径仓名显示；验证同日序号递增（.2）
