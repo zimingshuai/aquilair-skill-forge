@@ -187,7 +187,8 @@ def main() -> int:
     parser.add_argument("--note", default="", help="本次推送要点（记入 CHANGELOG）")
     parser.add_argument("--dry-run", action="store_true", help="只预览不执行")
     args = parser.parse_args()
-    repo = Path(args.repo)
+    # resolve()：把相对路径（如 .）转为绝对路径，保证仓库名显示正确
+    repo = Path(args.repo).resolve()
     if not (repo / ".git").exists():
         print(f"====拒绝执行====: {repo} 不是 git 仓库")
         return 2
