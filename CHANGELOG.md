@@ -7,6 +7,12 @@
 > 禁用 `git reset --hard` 直推远程（违反只进不退）。
 > 各节倒序排列（最新在上）；版本号不可变、只进不退。
 
+## push/2026-11-20.6（2026-11-20 13:36）｜3 commits
+- `04f2372` fix(tools): release_record rev-parse 加 --verify——不存在 tag 被回显原文误判为存在（实测坑）
+- `4844618` fix(tools): release_record 版本号复用校验前置到 dry-run 之前（安全校验必须预览期暴露）
+- `3e12db0` feat(tools): 发布工具 release_record——版本节+v tag+推 tag 与推送记录分离（push 是 push、发布是发布）；push_record 回滚 v-tag 随推方向保持纯推送语义
+> 要点：发布工具 release_record 上线（push/release 分离）；含 --verify 与复用校验前置两修复
+
 ## push/2026-11-20.5（2026-11-20 11:38）｜1 commits
 - `6acc354` chore(release): 发版 v0.3.0——CHANGELOG 版本节+发版 tag
 > 要点：发版 v0.3.0（业务锻造师：模板三件套+推送工具+新范式）
