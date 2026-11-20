@@ -103,7 +103,8 @@ def _tag_state(repo: Path, version: str, remote: str) -> tuple:
     Returns:
         (本地是否存在, 本地指向短哈希或空, 远程是否已有该 tag)。
     """
-    local_sha = _git(repo, "rev-parse", f"{version}^{{commit}}", check=False)[:12]
+    #   --verify 必加：rev-parse 对不存在的 ref 会回显原文且可能 exit 0（实测坑），加它才保证「不存在=空」
+    local_sha = _git(repo, "rev-parse", "--verify", f"{version}^{{commit}}", check=False)[:12]
     has_local = bool(local_sha)
     remote_refs = _git(repo, "ls-remote", "--tags", remote, version, check=False)
     has_remote = f"refs/tags/{version}" in remote_refs
