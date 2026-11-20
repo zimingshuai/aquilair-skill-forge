@@ -7,6 +7,11 @@
 > 禁用 `git reset --hard` 直推远程（违反只进不退）。
 > 各节倒序排列（最新在上）；版本号不可变、只进不退。
 
+## v0.3.0（2026-11-20）｜发版 tag `v0.3.0`
+- **工厂模板三件套（试点）**：skeleton 机制骨架（规则驱动推理/未知出口/分页取齐/编排模式字段，launch v0.3.1 抽象）/ delivery-assets 交付基线（v0.4.3 口径+渲染四件，出厂整目录 fork）/ knowledge-criteria 三类知识判据卡；治理=模板改动仅用户发起、脚本缺陷维护同步、规范口径走用户（4278e20/6033407）
+- **推送即版本工具 push_record.py**：tag+CHANGELOG+push 三合一替代裸 push（含 --also 镜像/上游远程自适应，负向测试通过）
+- **authoring 新范式升级**：探查循环六步（元数据四类定义推理/定义先行缓存/分页取齐/未知出口）+ refs 两件套 + 打法退役判据 + MCP 双环境约定（dev 仓 aquilair-mcp-servers-dev / 发版仓 aquilair-mcp-servers）入接线步
+
 ## push/2026-11-20.4（2026-11-20 10:54）｜1 commits
 - `084645d` fix(tools): push_record 推上游远程替代硬编码 origin——适配各仓远程命名(gitlab/github/origin)；新增 --also 镜像同步参数(逗号分隔+远程名合法性校验,镜像失败不回滚主推但如实上报)；推送计划行显示目标远程(dry-run 可验证命令构造)；负向臆造远程实测拒绝+ontology 临时分支 dry-run 实测 gitlab+镜像解析正确
 > 要点：push_record 上游适配修复：origin 硬编码→upstream 远程名+--also 镜像；负向/正向 dry-run 双测通过
