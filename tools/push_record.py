@@ -5,6 +5,7 @@
 提交记录 → 推送分支与 tag」四步，替代裸 push，杜绝漏记漏锚点。
 
 主要 Input：--repo 目标仓库路径（必填）、--note 本次推送要点（可选）、
+--also 镜像远程（可选，逗号分隔——主推送走分支上游远程，--also 额外同步推送）、
 --dry-run 只预览不执行（可选）。
 主要 Output：远程更新 + 本地 tag 与 CHANGELOG.md 记录节；控制台输出
 中文执行日志。回退方式见 CHANGELOG.md 头部说明。
@@ -73,6 +74,25 @@ def _unpushed_commits(repo: Path) -> list:
     return [tuple(line.split("|", 1)) for line in lines if "|" in line]
 
 
+def _push_remote(repo: Path, remote: str, branch: str, tag_name: str) -> bool:
+    """向指定远程推送分支与锚点 tag，返回是否成功（镜像同步用）。
+
+    Args:
+        repo: 目标仓库根目录路径。
+        remote: 远程名（须已配置）。
+        branch: 分支名。
+        tag_name: 锚点 tag 名。
+    Returns:
+        True 推送成功；False 失败（stderr 已由 git 打印，此处仅返回判定）。
+    """
+    print(f"====镜像推送====: git push {remote} {branch} {tag_name}")
+    result = subprocess.run(
+        ["git", "-C", str(repo), "push", remote, branch, tag_name],
+        capture_output=True, text=True, encoding="utf-8", errors="replace",
+    )
+    return result.returncode == 0
+
+
 # ===========二、锚点序号与记录生成==========
 def _next_tag(repo: Path, today: str) -> str:
     """计算当天下一个推送锚点序号（push/YYYY-MM-DD.N）。
@@ -136,13 +156,15 @@ def _prepend_changelog(repo: Path, section: str) -> None:
 
 
 # ===========三、主流程（推送即版本）==========
-def push_with_record(repo: Path, note: str, dry_run: bool) -> int:
+def push_with_record(repo: Path, note: str, dry_run: bool, also: list) -> int:
     """执行推送即版本主流程：收集提交 → 记录 → 提交 → tag → 推送。
 
     Args:
         repo: 目标仓库根目录路径。
         note: 推送要点（可为空串）。
         dry_run: True 时只打印将执行的动作，不产生任何变更。
+        also: 镜像远程名列表（可为空）——主推送走分支上游远程（自动适配 gitlab/origin
+              等各仓命名，不硬编码），镜像在主推送成功后逐个同步推送。
     Returns:
         进程退出码：0 成功；1 无未推送提交或执行失败。
     """
@@ -156,8 +178,12 @@ def push_with_record(repo: Path, note: str, dry_run: bool) -> int:
     section = _build_section(tag_name, commits, note)
     branch = _git(repo, "rev-parse", "--abbrev-ref", "HEAD")
     note_suffix = f"（要点：{note}）" if note else ""
-    print(f"====推送计划====: {repo.name} 分支 {branch}，锚点 {tag_name}，"
-          f"{len(commits)} 个提交{note_suffix}")
+    #   upstream_remote：上游远程名（@{u} 形如 gitlab/master，取斜杠前段）——适配各仓命名
+    upstream = _git(repo, "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}")
+    upstream_remote = upstream.split("/", 1)[0]
+    mirror_suffix = f" + 镜像 {','.join(also)}" if also else ""
+    print(f"====推送计划====: {repo.name} 分支 {branch} → {upstream_remote}{mirror_suffix}，"
+          f"锚点 {tag_name}，{len(commits)} 个提交{note_suffix}")
     for short_hash, subject in commits:
         print(f"  {short_hash} {subject}")
     if dry_run:
@@ -169,9 +195,16 @@ def push_with_record(repo: Path, note: str, dry_run: bool) -> int:
     _git(repo, "commit", "-m", f"chore(push): 记录 {tag_name}（{len(commits)} commits）")
     #   3. 打锚点 tag（指向含记录的提交）并连同分支一起推送
     _git(repo, "tag", tag_name)
-    print(f"====推送执行====: git push origin {branch} {tag_name}")
-    _git(repo, "push", "origin", branch, tag_name)
+    print(f"====推送执行====: git push {upstream_remote} {branch} {tag_name}")
+    _git(repo, "push", upstream_remote, branch, tag_name)
+    #   镜像同步：主仓锚点已立，镜像失败不回滚主推，但必须如实上报（不静默吞掉）
+    failed_mirrors = [m for m in also
+                      if not _push_remote(repo, m, branch, tag_name)]
     print(f"====推送完成====: 锚点 {tag_name} 已可回退（git show {tag_name} --stat）")
+    if failed_mirrors:
+        print(f"====镜像失败====: {','.join(failed_mirrors)} 同步失败——主仓已推送成功，"
+              f"请排查该镜像网络/权限后手动补推：git push <镜像> {branch} {tag_name}", file=sys.stderr)
+        return 1
     return 0
 
 
@@ -186,14 +219,23 @@ def main() -> int:
     parser.add_argument("--repo", required=True, help="目标仓库根目录路径")
     parser.add_argument("--note", default="", help="本次推送要点（记入 CHANGELOG）")
     parser.add_argument("--dry-run", action="store_true", help="只预览不执行")
+    parser.add_argument("--also", default="", help="镜像远程（逗号分隔，如 github；主推送走上游远程）")
     args = parser.parse_args()
     # resolve()：把相对路径（如 .）转为绝对路径，保证仓库名显示正确
     repo = Path(args.repo).resolve()
     if not (repo / ".git").exists():
         print(f"====拒绝执行====: {repo} 不是 git 仓库")
         return 2
+    #   also 解析与远程名合法性校验（臆造远程名直接拒绝，防镜像静默漏推）
+    also = [m.strip() for m in args.also.split(",") if m.strip()]
+    if also:
+        remotes = _git(repo, "remote").split()
+        bad = [m for m in also if m not in remotes]
+        if bad:
+            print(f"====拒绝执行====: 镜像远程不存在 {','.join(bad)}——已配置远程: {' '.join(remotes)}")
+            return 2
     try:
-        return push_with_record(repo, args.note, args.dry_run)
+        return push_with_record(repo, args.note, args.dry_run, also)
     except subprocess.CalledProcessError as exc:
         print(f"====执行失败====: {exc}", file=sys.stderr)
         return 1
