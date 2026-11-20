@@ -7,6 +7,10 @@
 > 禁用 `git reset --hard` 直推远程（违反只进不退）。
 > 各节倒序排列（最新在上）；版本号不可变、只进不退。
 
+## push/2026-11-20.7（2026-11-20 16:42）｜1 commits
+- `0e82412` fix(manifest): 双 marketplace 清单版本对齐 0.3.0（.claude 0.2.2 / .codebuddy 0.2.1 均落后源 0.3.0——中台阶段一 /api/matrix 首跑抓到的漂移，同类先例 business-hub marketplace 对齐）
+> 要点：中台首跑抓漂移：skill-forge 双 marketplace 0.2.2/0.2.1→0.3.0 对齐
+
 ## push/2026-11-20.6（2026-11-20 13:36）｜3 commits
 - `04f2372` fix(tools): release_record rev-parse 加 --verify——不存在 tag 被回显原文误判为存在（实测坑）
 - `4844618` fix(tools): release_record 版本号复用校验前置到 dry-run 之前（安全校验必须预览期暴露）
