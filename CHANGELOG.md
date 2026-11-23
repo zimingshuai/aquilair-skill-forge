@@ -7,6 +7,11 @@
 > 禁用 `git reset --hard` 直推远程（违反只进不退）。
 > 各节倒序排列（最新在上）；版本号不可变、只进不退。
 
+## push/2026-11-23.1（2026-11-23 10:28）｜2 commits
+- `cf3d396` feat(tools): lint C9 跨仓提及豁免机制——.mcp-crossref.json 清单+死豁免 WARN 兜底+解析失败 fail-closed
+- `a26bba2` docs(authoring): AGT-4 漂移扫描工序固化——runtime 版本变更→技能同步六步例行工序
+> 要点：AGT-4 漂移扫描工序固化（drift-scan.md 六步+11-20 实例锚定）；lint C9 跨仓提及豁免（.mcp-crossref.json+死豁免 WARN+fail-closed，负向双测过）
+
 ## push/2026-11-20.7（2026-11-20 16:42）｜1 commits
 - `0e82412` fix(manifest): 双 marketplace 清单版本对齐 0.3.0（.claude 0.2.2 / .codebuddy 0.2.1 均落后源 0.3.0——中台阶段一 /api/matrix 首跑抓到的漂移，同类先例 business-hub marketplace 对齐）
 > 要点：中台首跑抓漂移：skill-forge 双 marketplace 0.2.2/0.2.1→0.3.0 对齐
