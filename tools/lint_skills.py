@@ -14,7 +14,9 @@ plugins/skill-forge/skills/aquilair-skill-authoring/references/lint.md 的人工
   C6  技能已进 README 技能清单（业务/元技能章节均可）
   C7  业务技能已进 router 路由表
   C8  业务技能有 evals/<技能名>/ 用例目录
-  C9  MCP 服务双向一致（技能提及的服务在 .mcp.json；.mcp.json 无死服务）
+  C9  MCP 服务双向一致（技能提及的服务在 .mcp.json；.mcp.json 无死服务）；
+      跨仓描述性提及（提及≠依赖，如元文档描述目标仓连接器）经仓库根 .mcp-crossref.json
+      的 services 清单豁免；死豁免条目 WARN 兜底
   C10 业务技能 references 含出处标注（来源：/出处，新纪律渐进达标）
   C11 域知识库健康检查（aquilair-knowledge/sources/ 每域：编译层三件齐
       ——glossary/index/log，且编译层页面含出处标注；无来源页面即发现，代码判定）
@@ -156,6 +158,7 @@ def lint_skill(
     router_text: str,
     mcp_services: set[str],
     evals_dir: Path,
+    crossref_services: set[str] | None = None,
 ) -> list[tuple[str, str, str]]:
     """对单个技能执行 C1~C13 中适用的机检项。
 
@@ -165,6 +168,7 @@ def lint_skill(
         skill_text: SKILL.md 全文。
         is_business: 是否业务技能（元技能豁免 C7/C8/C10）。
         router_text: router 技能 SKILL.md 全文（路由表检查用）。
+        crossref_services: .mcp-crossref.json 登记的跨仓描述性提及服务名（提及≠依赖，豁免 C9 登记）。
         mcp_services: .mcp.json 中登记的服务名集合。
         evals_dir: 仓库 evals 目录路径。
     Returns:
@@ -218,9 +222,11 @@ def lint_skill(
                     break
         if has_reference_files and not has_source_note:
             issues.append((LEVEL_WARN, "C10", "references 无任何出处标注（格式见 aquilair-knowledge/sources/README.md）"))
-    #   9. C9 MCP 服务：技能提及的服务必须在 .mcp.json 登记
+    #   9. C9 MCP 服务：技能提及的服务必须在 .mcp.json 登记（.mcp-crossref.json 登记的跨仓
+    #      描述性提及豁免——元文档描述目标仓连接器属「提及≠依赖」场景；死豁免条目由仓库级检查兜底）
+    crossref = crossref_services or set()
     for service in sorted(set(SERVICE_PATTERN.findall(skill_text))):
-        if service not in mcp_services:
+        if service not in mcp_services and service not in crossref:
             issues.append((LEVEL_ERROR, "C9", f"提及的 MCP 服务 {service} 未在 .mcp.json 登记"))
     #  10. C13 规范合规（agentskills.io 开放规范，2026-11-03 上收）——frontmatter 字段精查
     fm_name = frontmatter.get("name", "")
@@ -306,6 +312,16 @@ def lint_repo(repo_root: Path) -> tuple[list[dict[str, list[tuple[str, str, str]
     mcp_services = set()
     for mcp_path in sorted((repo_root / "plugins").glob("*/.mcp.json")):
         mcp_services |= set(json.loads(mcp_path.read_text(encoding="utf-8")).get("mcpServers", {}))
+    # crossref_services：仓库根 .mcp-crossref.json 登记的跨仓描述性提及服务（提及≠依赖，C9 豁免）
+    # 形态 {"services": ["<服务名>", ...]}；缺失/解析失败均视为无豁免（fail-closed：C9 恢复严格）；
+    # 死豁免条目（未被提及）由下方仓库级检查 WARN 兜底
+    crossref_path = repo_root / ".mcp-crossref.json"
+    crossref_services: set[str] = set()
+    if crossref_path.is_file():
+        try:
+            crossref_services = set(json.loads(crossref_path.read_text(encoding="utf-8")).get("services", []))
+        except (json.JSONDecodeError, OSError) as exc:
+            print(f"警告：.mcp-crossref.json 无法解析（{exc}）——按无豁免处理，C9 恢复严格。", file=sys.stderr)
     evals_dir = repo_root / "evals"
     #   2. 逐技能机检（未进 README 任何章节的目录视为业务技能候选，按 C6 报错）
     per_skill: list[dict[str, list[tuple[str, str, str]]]] = []
@@ -317,7 +333,7 @@ def lint_repo(repo_root: Path) -> tuple[list[dict[str, list[tuple[str, str, str]
             per_skill.append({skill_name: [(LEVEL_ERROR, "C0", "目录缺 SKILL.md，不是合法技能资产")]})
             continue
         is_business = skill_name in business
-        issues = lint_skill(skill_name, skill_dir, skill_file.read_text(encoding="utf-8"), is_business, router_text, mcp_services, evals_dir)
+        issues = lint_skill(skill_name, skill_dir, skill_file.read_text(encoding="utf-8"), is_business, router_text, mcp_services, evals_dir, crossref_services)
         if skill_name not in business and skill_name not in meta:
             issues.append((LEVEL_ERROR, "C6", "未进 README 技能清单（业务技能或元技能章节）"))
         per_skill.append({skill_name: issues})
@@ -330,6 +346,8 @@ def lint_repo(repo_root: Path) -> tuple[list[dict[str, list[tuple[str, str, str]
     mentioned = set(SERVICE_PATTERN.findall(all_skill_text))
     for service in sorted(mcp_services - mentioned):
         repo_issues.append((LEVEL_WARN, "C9", f".mcp.json 服务 {service} 未被任何技能提及（疑似死服务）"))
+    for service in sorted(crossref_services - mentioned):
+        repo_issues.append((LEVEL_WARN, "C9", f".mcp-crossref.json 豁免条目 {service} 未被任何技能提及（疑似死豁免，建议删除）"))
     #   4. C11 域知识库健康检查：每域编译层三件齐（glossary/index/log）+ 出处标注抽查
     sources_root = repo_root / "aquilair-knowledge" / "sources"
     if sources_root.is_dir():

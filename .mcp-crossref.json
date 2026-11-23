@@ -1,0 +1,7 @@
+{
+  "services": [
+    "aquilair-mcp-servers-dev",
+    "aquilair-mcp-servers"
+  ],
+  "note": "跨仓描述性提及豁免（C9）：本仓（skill-forge 工厂）技能文档描述目标仓连接器属「提及≠依赖」场景——dev/发版双环境约定见 aquilair-skill-authoring SKILL.md 接线步。工厂仓本身不连业务网关（实测在测试区 hub-dev），故不登记 .mcp.json。死豁免条目由 lint C9 仓库级检查 WARN 兜底。"
+}
