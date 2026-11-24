@@ -13,14 +13,17 @@ from pathlib import Path
 
 from chart_renderers import (
     FAINT,
-    FONT,
     GRID,
     INK,
     SERIES_COLORS,
     SUB,
+    boxes_intersect,
     esc,
     fmt,
+    label_box,
     nice_max,
+    svg_open,
+    to_number,
     truncate,
 )
 
@@ -45,9 +48,10 @@ def svg_scatter(chart, width=660) -> str:
 
     Args:
         chart: 单图规格 dict：points=[{x, y, label, group}]；groups={组名: 色值}；
+            connect_groups=[组名]（可选：列出的组按 points 出现顺序连成折线，组色 2px 不闭合）；
             thresholds={x: 值, y: 值}（虚线象限分界，可选）；label_top 标注最靠上的
-            点数（默认 6）；show_labels 是否标注（默认 True）；x_label/y_label 轴标题；
-            height 画布高度（可选，默认 272）。
+            点数（默认 6）；show_labels 是否标注（默认 True，标签四向避让，冲突则跳过）；
+            x_label/y_label 轴标题；height 画布高度（可选，默认 272）。
         width: SVG 视口宽度（px）。
     Returns:
         <svg> 片段字符串；points 为空时返回空串。
@@ -56,8 +60,8 @@ def svg_scatter(chart, width=660) -> str:
     if not points:
         return ""
     groups = chart.get("groups", {}) or {}
-    xs = [float(p.get("x", 0)) for p in points]
-    ys = [float(p.get("y", 0)) for p in points]
+    xs = [to_number(p.get("x", 0)) for p in points]
+    ys = [to_number(p.get("y", 0)) for p in points]
     x_max = nice_max(xs)
     y_max = nice_max(ys)
     # pad_bottom=74：自上而下分三行——X 轴刻度（+16）、图例（height-34）、X 轴标题（height-12），行间距不压字
@@ -76,49 +80,83 @@ def svg_scatter(chart, width=660) -> str:
 
     y_div = axis_divisions(y_max)
     x_div = axis_divisions(x_max)
-    out = [f'<svg viewBox="0 0 {width} {height}" width="100%" role="img" '
-           f'aria-label="{esc(chart.get("title", ""))}" font-family="{FONT}">']
+    out = [svg_open(chart, width, height)]
     for i in range(y_div + 1):
         gy = pad_top + plot_h - plot_h * i / y_div
         out.append(f'<line x1="{left}" y1="{gy:.1f}" x2="{width - right}" y2="{gy:.1f}" stroke="{GRID}"/>')
-        out.append(f'<text x="{left - 8}" y="{gy:.1f}" font-size="10.5" fill="{FAINT}" '
+        out.append(f'<text x="{left - 8}" y="{gy:.1f}" font-size="11" fill="{FAINT}" '
                    f'text-anchor="end" dominant-baseline="central">{fmt(y_max * i / y_div)}</text>')
     for i in range(x_div + 1):
         gx = left + plot_w * i / x_div
         out.append(f'<line x1="{gx:.1f}" y1="{pad_top}" x2="{gx:.1f}" y2="{pad_top + plot_h}" stroke="{GRID}"/>')
-        out.append(f'<text x="{gx:.1f}" y="{pad_top + plot_h + 16}" font-size="10.5" fill="{FAINT}" '
+        out.append(f'<text x="{gx:.1f}" y="{pad_top + plot_h + 16}" font-size="11" fill="{FAINT}" '
                    f'text-anchor="middle">{fmt(x_max * i / x_div)}</text>')
     # 阈值线（象限分界：如 ABC 分级周转/金额门槛）
     thresholds = chart.get("thresholds", {}) or {}
     if thresholds.get("x") is not None:
-        tx = px(float(thresholds["x"]))
+        tx = px(to_number(thresholds["x"]))
         out.append(f'<line x1="{tx:.1f}" y1="{pad_top}" x2="{tx:.1f}" y2="{pad_top + plot_h}" '
                    f'stroke="{SUB}" stroke-width="1" stroke-dasharray="3 3"/>')
     if thresholds.get("y") is not None:
-        ty = py(float(thresholds["y"]))
+        ty = py(to_number(thresholds["y"]))
         out.append(f'<line x1="{left}" y1="{ty:.1f}" x2="{width - right}" y2="{ty:.1f}" '
                    f'stroke="{SUB}" stroke-width="1" stroke-dasharray="3 3"/>')
-    # 标签只标最靠上的 N 个点（按 y 降序），避免密集区互相压字
+    # 折线叠加：connect_groups 列出的组按 points 出现顺序连线（组色 2px、不闭合），
+    # 连线画在散点之下；未列出的组保持仅散点（标签避让逻辑不受影响）
+    for group_name in chart.get("connect_groups") or []:
+        line_points = [(px(to_number(point.get("x", 0))), py(to_number(point.get("y", 0))))
+                       for point in points if point.get("group") == group_name]
+        if len(line_points) < 2:
+            continue
+        line_color = groups.get(group_name) or SERIES_COLORS[0]
+        coords = " ".join(f"{cx:.1f},{cy:.1f}" for cx, cy in line_points)
+        out.append(f'<polyline points="{coords}" fill="none" stroke="{line_color}" '
+                   f'stroke-width="2" stroke-linejoin="round"/>')
+    # 标签只标最靠上的 N 个点（按 y 降序）；四向候选避让：右上→左上→右下→左下，
+    # 每向先校验标签矩形整体在绘图区内，再避开已放置标签与阈值线；四向都失败则跳过
     label_top = int(chart.get("label_top", 6))
-    label_set = set()
+    label_boxes = []
+    label_positions = {}
     if chart.get("show_labels", True):
-        ranked = sorted(range(len(points)), key=lambda i: float(points[i].get("y", 0)), reverse=True)
-        label_set = set(ranked[:label_top])
+        ranked = sorted(range(len(points)), key=lambda i: to_number(points[i].get("y", 0)), reverse=True)
+        for pi in ranked[:label_top]:
+            point = points[pi]
+            if not point.get("label"):
+                continue
+            cx, cy = px(to_number(point.get("x"))), py(to_number(point.get("y")))
+            # label_text：截断后的标签文本；矩形宽度按显示宽度估算（全角按 2 计）
+            label_text = truncate(point["label"], 12)
+            candidates = (
+                (cx + 8, cy - 8, "start"),
+                (cx - 8, cy - 8, "end"),
+                (cx + 8, cy + 16, "start"),
+                (cx - 8, cy + 16, "end"),
+            )
+            for text_x, text_y, anchor in candidates:
+                box = label_box(text_x, text_y, label_text, anchor)
+                # 绘图区边界：矩形整体在绘图区内，且文本基线 y 在 [pad_top+11, pad_top+plot_h-4]
+                if box[0] < left + 4 or box[2] > width - right - 4:
+                    continue
+                if text_y < pad_top + 11 or text_y > pad_top + plot_h - 4:
+                    continue
+                if box[1] < pad_top or box[3] > pad_top + plot_h:
+                    continue
+                if any(boxes_intersect(box, placed) for placed in label_boxes):
+                    continue
+                if thresholds.get("x") is not None and box[0] < tx < box[2]:
+                    continue
+                if thresholds.get("y") is not None and box[1] < ty < box[3]:
+                    continue
+                label_boxes.append(box)
+                label_positions[pi] = (text_x, text_y, anchor)
+                break
     for pi, point in enumerate(points):
-        cx, cy = px(float(point.get("x", 0))), py(float(point.get("y", 0)))
+        cx, cy = px(to_number(point.get("x", 0))), py(to_number(point.get("y", 0)))
         color = groups.get(point.get("group"), None) or SERIES_COLORS[0]
         out.append(f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="4.5" fill="{color}" fill-opacity="0.85"/>')
-        if pi in label_set and point.get("label"):
-            anchor = "end" if cx > width - right - 90 else "start"
-            dx = -8 if anchor == "end" else 8
-            # 阈值竖线避让：估算标签宽度，bbox 会跨过阈值线时翻转到另一侧（翻转后出左界则维持原侧）
-            if thresholds.get("x") is not None:
-                label_w = min(len(point["label"]), 12) * 10
-                label_x0 = cx + 8 if anchor == "start" else cx - 8 - label_w
-                if label_x0 < tx < label_x0 + label_w and not (anchor == "start" and cx - 8 - label_w < left):
-                    anchor = "end" if anchor == "start" else "start"
-                    dx = -8 if anchor == "end" else 8
-            out.append(f'<text x="{cx + dx:.1f}" y="{cy - 8:.1f}" font-size="10" fill="{SUB}" '
+        if pi in label_positions:
+            text_x, text_y, anchor = label_positions[pi]
+            out.append(f'<text x="{text_x:.1f}" y="{text_y:.1f}" font-size="11" fill="{SUB}" '
                        f'text-anchor="{anchor}">{esc(truncate(point["label"], 12))}</text>')
     # 轴标题
     out.append(f'<text x="{left + plot_w / 2:.1f}" y="{height - 12}" font-size="11" fill="{SUB}" '
@@ -130,7 +168,7 @@ def svg_scatter(chart, width=660) -> str:
         lx = left
         for name, color in groups.items():
             out.append(f'<circle cx="{lx + 4}" cy="{height - 38}" r="4" fill="{color}"/>')
-            out.append(f'<text x="{lx + 13}" y="{height - 34}" font-size="10.5" fill="{SUB}">'
+            out.append(f'<text x="{lx + 13}" y="{height - 34}" font-size="11" fill="{SUB}">'
                        f'{esc(truncate(name, 10))}</text>')
             lx += 26 + len(name) * 11
     out.append("</svg>")
@@ -153,8 +191,8 @@ def svg_dual(chart, width=660) -> str:
     line = chart.get("line", {}) or {}
     if not cats or not bars:
         return ""
-    bar_values = [float(v or 0) for v in bars.get("values", [])]
-    line_values = [float(v or 0) for v in line.get("values", [])]
+    bar_values = [to_number(v) for v in bars.get("values", [])]
+    line_values = [to_number(v) for v in line.get("values", [])]
     bar_top = nice_max(bar_values)
     line_top = nice_max(line_values) if line_values else 1
     left, right, pad_top, pad_bottom = 54, 56, 26, 54
@@ -164,15 +202,14 @@ def svg_dual(chart, width=660) -> str:
     group_w = plot_w / len(cats)
     bar_w = min(40.0, group_w * 0.5)
 
-    out = [f'<svg viewBox="0 0 {width} {height}" width="100%" role="img" '
-           f'aria-label="{esc(chart.get("title", ""))}" font-family="{FONT}">']
+    out = [svg_open(chart, width, height)]
     for i in range(5):
         gy = pad_top + plot_h - plot_h * i / 4
         out.append(f'<line x1="{left}" y1="{gy:.1f}" x2="{width - right}" y2="{gy:.1f}" stroke="{GRID}"/>')
-        out.append(f'<text x="{left - 8}" y="{gy:.1f}" font-size="10.5" fill="{FAINT}" '
+        out.append(f'<text x="{left - 8}" y="{gy:.1f}" font-size="11" fill="{FAINT}" '
                    f'text-anchor="end" dominant-baseline="central">{fmt(bar_top * i / 4)}</text>')
         if line_values:
-            out.append(f'<text x="{width - right + 8}" y="{gy:.1f}" font-size="10.5" fill="{FAINT}" '
+            out.append(f'<text x="{width - right + 8}" y="{gy:.1f}" font-size="11" fill="{FAINT}" '
                        f'dominant-baseline="central">{fmt(line_top * i / 4)}</text>')
     for ci, cat in enumerate(cats):
         if ci >= len(bar_values):
@@ -186,10 +223,10 @@ def svg_dual(chart, width=660) -> str:
         # 柱够高时数值写进柱内顶部，避免与折线交叉压字
         if bar_h > 30:
             out.append(f'<text x="{x + bar_w / 2:.1f}" y="{bar_y + 12:.1f}" '
-                       f'font-size="10" fill="#fff" text-anchor="middle">{fmt(value)}</text>')
+                       f'font-size="11" fill="#fff" text-anchor="middle">{fmt(value)}</text>')
         else:
             out.append(f'<text x="{x + bar_w / 2:.1f}" y="{bar_y - 6:.1f}" '
-                       f'font-size="10" fill="{SUB}" text-anchor="middle">{fmt(value)}</text>')
+                       f'font-size="11" fill="{SUB}" text-anchor="middle">{fmt(value)}</text>')
         out.append(f'<text x="{left + group_w * (ci + 0.5):.1f}" y="{pad_top + plot_h + 16:.1f}" '
                    f'font-size="11" fill="{SUB}" text-anchor="middle">{esc(truncate(cat, 9))}</text>')
     if line_values:
@@ -200,7 +237,7 @@ def svg_dual(chart, width=660) -> str:
             pts.append(f"{cx:.1f},{cy:.1f}")
             out.append(f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="3" fill="#fff" '
                        f'stroke="#EF9F27" stroke-width="2"/>')
-            out.append(f'<text x="{cx:.1f}" y="{cy - 9:.1f}" font-size="10" fill="#854F0B" '
+            out.append(f'<text x="{cx:.1f}" y="{cy - 9:.1f}" font-size="11" fill="#854F0B" '
                        f'text-anchor="middle">{fmt(value)}</text>')
         out.append(f'<polyline points="{" ".join(pts)}" fill="none" stroke="#EF9F27" '
                    f'stroke-width="2" stroke-linejoin="round"/>')
@@ -235,7 +272,7 @@ def svg_radar(chart, width=660) -> str:
     series = chart.get("series", [])
     if len(axes) < 3 or not series:
         return ""
-    top = float(chart.get("max") or 100)
+    top = to_number(chart.get("max") or 100)
     height = chart.get("height", 306)
     cx = width / 2 - 30
     cy = height / 2 + 4
@@ -249,8 +286,7 @@ def svg_radar(chart, width=660) -> str:
         return (cx + radius * ratio * math.cos(angles[idx]),
                 cy + radius * ratio * math.sin(angles[idx]))
 
-    out = [f'<svg viewBox="0 0 {width} {height}" width="100%" role="img" '
-           f'aria-label="{esc(chart.get("title", ""))}" font-family="{FONT}">']
+    out = [svg_open(chart, width, height)]
     # 同心网格
     for ring in (0.25, 0.5, 0.75, 1.0):
         path = " ".join(f"{vertex(i, ring)[0]:.1f},{vertex(i, ring)[1]:.1f}" for i in range(count))
@@ -261,11 +297,11 @@ def svg_radar(chart, width=660) -> str:
         lx, ly = vertex(idx, 1.18)
         cos_v = math.cos(angles[idx])
         anchor = "middle" if abs(cos_v) < 0.25 else ("start" if cos_v > 0 else "end")
-        out.append(f'<text x="{lx:.1f}" y="{ly:.1f}" font-size="10.5" fill="{SUB}" '
+        out.append(f'<text x="{lx:.1f}" y="{ly:.1f}" font-size="11" fill="{SUB}" '
                    f'text-anchor="{anchor}" dominant-baseline="central">{esc(truncate(axes[idx], 6))}</text>')
     # 系列多边形
     for si, item in enumerate(series):
-        values = [float(v or 0) for v in item.get("values", [])]
+        values = [to_number(v) for v in item.get("values", [])]
         if len(values) < count:
             continue
         color = item.get("color") or SERIES_COLORS[si % len(SERIES_COLORS)]
@@ -340,14 +376,13 @@ def svg_gantt(chart, width=660) -> str:
         # 时刻 → 画布横坐标（按时间轴起点与总跨度线性映射）
         return left + (width - left - right) * ((moment - t0).total_seconds() / span)
 
-    out = [f'<svg viewBox="0 0 {width} {height}" width="100%" role="img" '
-           f'aria-label="{esc(chart.get("title", ""))}" font-family="{FONT}">']
+    out = [svg_open(chart, width, height)]
     for i in range(5):
         tick = t0 + timedelta(seconds=span * i / 4)
         tx = px(tick)
         out.append(f'<line x1="{tx:.1f}" y1="{pad_top - 8}" x2="{tx:.1f}" '
                    f'y2="{pad_top + row_h * len(parsed)}" stroke="{GRID}"/>')
-        out.append(f'<text x="{tx:.1f}" y="{pad_top - 14}" font-size="10.5" fill="{FAINT}" '
+        out.append(f'<text x="{tx:.1f}" y="{pad_top - 14}" font-size="11" fill="{FAINT}" '
                    f'text-anchor="middle">{tick.strftime("%m/%d")}</text>')
     for idx, (row, start, end) in enumerate(parsed):
         y = pad_top + idx * row_h
@@ -362,10 +397,10 @@ def svg_gantt(chart, width=660) -> str:
         if note:
             nx = bx + bw + 8
             if nx + len(note) * 11 > width - right - 10:
-                out.append(f'<text x="{bx + bw - 8:.1f}" y="{y + row_h / 2 - 1:.1f}" font-size="10" '
+                out.append(f'<text x="{bx + bw - 8:.1f}" y="{y + row_h / 2 - 1:.1f}" font-size="11" '
                            f'fill="#fff" text-anchor="end" dominant-baseline="central">{esc(note)}</text>')
             else:
-                out.append(f'<text x="{nx:.1f}" y="{y + row_h / 2 - 1:.1f}" font-size="10" '
+                out.append(f'<text x="{nx:.1f}" y="{y + row_h / 2 - 1:.1f}" font-size="11" '
                            f'fill="{SUB}" dominant-baseline="central">{esc(note)}</text>')
     today = _parse_day(chart.get("today"))
     if today and t0 <= today <= t1:
@@ -373,7 +408,7 @@ def svg_gantt(chart, width=660) -> str:
         out.append(f'<line x1="{tx:.1f}" y1="{pad_top - 6}" x2="{tx:.1f}" '
                    f'y2="{pad_top + row_h * len(parsed)}" stroke="#E24B4A" stroke-width="1.5" '
                    f'stroke-dasharray="4 3"/>')
-        out.append(f'<text x="{tx:.1f}" y="{height - 6}" font-size="10" fill="#A32D2D" '
+        out.append(f'<text x="{tx:.1f}" y="{height - 6}" font-size="11" fill="#A32D2D" '
                    f'text-anchor="middle">今日</text>')
     out.append("</svg>")
     return "".join(out)
