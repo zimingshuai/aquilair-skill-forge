@@ -1,6 +1,6 @@
 # SKILL.md 填空模板（第 4 步专用）
 
-> **新范式（2026-11-19 起，目标态）**：文件资产三件套见 [`templates/`](templates/)——`skeleton/SKILL.md` 机制骨架（探查循环六步含未知出口/铁律五类/写确认五步）、`delivery-assets/` 交付资产基线（**出厂时整目录 fork 进目标技能**，各技能自含交付、互不引用）、`knowledge-criteria.md` 三类知识判据卡（打法→模型推理不落档 / 接口坑→facts / 口径陷阱→calibers）。治理：模板改动仅用户明确发起，已 fork 技能不自动追。
+> **新范式（2026-11-19 起，目标态）**：文件资产四件套见 [`templates/`](templates/)——`skeleton/SKILL.md` 机制骨架（探查循环六步含未知出口/铁律五类/写确认五步）、`delivery-assets/` 交付资产基线（**出厂时整目录 fork 进目标技能**，各技能自含交付、互不引用）、`knowledge-criteria.md` 知识取舍判据卡（逐句判断要不要写；打法→模型推理不落档 / 接口坑→facts / 口径陷阱→calibers）、`agent-shell.md` 顾问薄壳（插件 `agents/` 的身份薄壳，一项目一个；用法见下文「插件层结构」）。治理：模板改动仅用户明确发起，已 fork 技能不自动追。
 > 参照样板（均在 hub 仓 `aquilair-business-hub` 的 `plugins/business-hub/skills/` 下，跨仓引用、勿在本仓找）：**新范式样板**（规则驱动推理 + refs 两件套 + 自含交付资产）看 `launch-dynamic-assurance/`；旧范式存量（references 四层）看 `fnb-inventory-analysis/`（解释型）与 `mfg-transfer-allocation/`（受控执行型）——存量技能维持原结构迭代，不强制迁移；新技能一律按新范式出厂。
 
 ## 目录结构约定
@@ -122,7 +122,8 @@ metadata:  # 标配四子键，值一律字符串
 
 - **接口坑手册**（facts.md）：DSL 语法、工具行为与服务端坑、能力边界现状、元数据缺陷、脏数据**模式**（模式级 + 挂工单 + 修复即删）。**禁止**数据实态快照（数值/条数清单维护）与时间戳日志章节——实测原始记录落目标仓 `evals/runs/`；实测数字可作证据引用但不维护清单。
 - **口径手册**（calibers.md）：业务文档编译（判定公式/枚举语义/编码字典/时间基准/展示计算前提与硬拦截清单）——只存「字段直觉语义≠实际口径」的静默陷阱类知识；实体/属性/关系/规则清单不维护副本（实时 `metadata_list_*` 为唯一权威）。
-- **打法不落档**（2026-11-16 裁决）：场景组织/步骤顺序/判定面清单等可从元数据推导的内容一律不写——写了即模板遮蔽（判据与三问见 [`templates/knowledge-criteria.md`](templates/knowledge-criteria.md)）。
+- **打法不落档**（2026-11-16 裁决）：场景组织/步骤顺序/判定面清单等可从元数据推导的内容一律不写——写了即模板遮蔽。
+- **成稿清理**（2026-11-24 裁决）：refs 成稿后逐句过判据卡通式——删掉它模型靠实时元数据 / 工具自描述 / 推理仍能得到同样正确结果的就不写；五类可删（元数据已有 / 工具自描述已有 / SKILL.md 已有 / 常识 / 元叙述）、四条删除纪律与出处标注底线见 [`templates/knowledge-criteria.md`](templates/knowledge-criteria.md)。
 - **交付规范**（delivery.md）：fork 自工厂模板（[`templates/delivery-assets/`](templates/delivery-assets/)），技能自含、自治演化。
 - 旧范式存量（业务语义卡 domain-model / 场景剧本 playbook）仅 fnb/mfg 维持原结构迭代，新技能不再产出；两文件退役路径参照 launch 域 2026-11 演进（独有知识并入 calibers 后删除）。
 

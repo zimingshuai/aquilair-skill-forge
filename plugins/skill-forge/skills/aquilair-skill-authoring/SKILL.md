@@ -71,7 +71,7 @@ skill 工厂「生产端」主技能：新业务领域只需携带 **MCP 服务 
 
 ### 4. 套模板产出（新技能是填空，不是创作）
 
-读 [`references/template.md`](references/template.md) 与**模板三件套**（[`references/templates/`](references/templates/)：skeleton 机制骨架 / delivery-assets 交付资产基线 / knowledge-criteria 三类知识判据卡）填空出厂：SKILL.md 控制在 **50~120 行**、机制段以 `templates/skeleton/SKILL.md` 为准——探查循环六步（**推理依据=实时元数据四类定义**：关系定路径/规则定判定面（注册规则输入并集现查推导）/动作定验证出口；定义先行即落缓存、分页取齐再写合计、未知出口出诊断卡；2026-11-16 用户裁决，launch v0.3.1 双子代理行为评估通过）；references 新范式**两件套**（facts 接口坑 + calibers 口径，打法不落档——判据三问见 templates/knowledge-criteria.md）；**交付资产整目录 fork**（delivery.md + 渲染四件进技能 `references/`+`scripts/`——各技能自含交付、互不引用，第一版同源后自治演化）；写操作技能增配「数据环境」与「写操作确认」两节，确认口径 = 严格停卡（用户首条请求消息不构成确认，知情后同意）。**模板治理：三件套改动仅用户明确发起，已 fork 技能不自动追。**
+读 [`references/template.md`](references/template.md) 与**模板四件套**（[`references/templates/`](references/templates/)：skeleton 机制骨架 / delivery-assets 交付资产基线 / knowledge-criteria 知识取舍判据卡 / agent-shell 顾问薄壳——用法见第 5 步）填空出厂：SKILL.md 控制在 **50~120 行**、机制段以 `templates/skeleton/SKILL.md` 为准——探查循环六步（**推理依据=实时元数据四类定义**：关系定路径/规则定判定面（注册规则输入并集现查推导）/动作定验证出口；定义先行即落缓存、分页取齐再写合计、未知出口出诊断卡；2026-11-16 用户裁决，launch v0.3.1 双子代理行为评估通过）；references 新范式**两件套**（facts 接口坑 + calibers 口径，打法不落档），**成稿后逐句过判据卡通式**——删掉它模型靠实时元数据 / 工具自描述 / 推理仍能得到同样正确结果的就不写（通式、五类可删、四条删除纪律见 templates/knowledge-criteria.md）；**交付资产整目录 fork**（delivery.md + 渲染四件进技能 `references/`+`scripts/`——各技能自含交付、互不引用，第一版同源后自治演化）；写操作技能增配「数据环境」与「写操作确认」两节，确认口径 = 严格停卡（用户首条请求消息不构成确认，知情后同意）。**模板治理：四件套改动仅用户明确发起，已 fork 技能不自动追。**
 
 **规范合规要点（agentskills.io 开放规范，2026-11-03 上收为出厂标准）**：① frontmatter 完整性——name 精查（小写连字符、≤64 字符）、description ≤1024 且主动句式、**凡依赖 MCP/内网/特定宿主必写 `compatibility`**（≤500 字符）、`metadata` 标配 author+version+workspace；② agent 每次重复发明的逻辑固化进 `scripts/`（存档架构首选，agent-friendly 设计九条见 references/template.md），SKILL.md 列「可用脚本」入口；③ 技能内 `evals/` 标准双件——evals.json + trigger-queries.json，与目标仓 cases.yaml 同 PR 双向同步；④ 输出用内联模板骨架不用自由 prose。模板与样例见 references/template.md。
 
@@ -108,6 +108,8 @@ skill 工厂「生产端」主技能：新业务领域只需携带 **MCP 服务 
 | 「把实测到的数据实态（条数/状态/缺口值）写进 facts，回答更快」 | 数据实态最快一天就漂（2026-10-30 实证：net_demand_qty 回写状态、plan_id 挂接关系均一天内变化）；技能运行时以实时查询为唯一事实源，快照只增加误导面——实态零快照。 |
 | 「实测发现按时间顺序追加到 facts 末尾，留着过程记录」 | 日志式手册让「当前生效版本」散落在时间戳章节里（launch 旧 facts 四天 DSL 误判史即样板）；每条发现要么升格为稳定手册条目、要么只记 runs——二选一，不留日志。 |
 | 「规范合规字段是可选装饰，老技能不配也行」 | compatibility 缺失→跨宿主装上即坏且无从诊断；无 evals.json→技能离仓不可评估；无触发用例集→description 优化永远拍脑袋——新技能出厂必配（lint C13 机检），存量技能补齐于下次回归。 |
+| 「这个坑很重要，多写几遍、带上实测经过更保险」 | refs 的每一句都要过判据卡通式：有实测证据的坑留一句现象即可，去日期、去叙史；出处标注至少留一处（lint C10）。写得多不等于守得住——模型现场用不上的内容只会稀释真正重要的那几条。 |
+| 「清理 refs 时我自己删自己核就行」 | 实证：极米技能第二轮清理 189 处删除，约 11 处删后无载体，是没参与删除的一方复核才发现的。删除后必须留快照、逐句对比、交另一方复核。 |
 
 ## 五、泛化声明
 

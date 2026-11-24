@@ -2,6 +2,7 @@
 
 > 状态：**试点**——单域实证（launch-dynamic-assurance v0.3.1，2026-11 双子代理行为评估通过），第二域（jimi-sdb 对齐）与第三域（fnb/mfg 交付资产 fork）已按同流程出厂；转正式由用户发起。
 > 新范式来源：2026-11-16 用户裁决「规则驱动推理 + 三类知识三文件」——打法交模型沿元数据推理，技能文件只存机制与纪律。
+> 判据卡升级：2026-11-24 用户裁决「没必要的都清理、发挥大模型主观能动性」——由三问扩为逐句通式 + 五类可删 + 四条删除纪律（沉淀自 jimi-sdb 第二轮清理：189 处删除约 11 处删后无载体的教训）。
 > 插件层结构（2026-11-23 裁决）：一插件 = 一项目 = 一本体；agent 用 [`agent-shell.md`](agent-shell.md) 身份薄壳模板（一项目一个，禁复述行为）；MCP 连接属用户级配置，连接信息样本放插件 `mcp/.mcp.json`（不放插件根）。
 
 ## 四件套
@@ -9,13 +10,13 @@
 | 件 | 位置 | 用途 |
 | --- | --- | --- |
 | 骨架模板 | `skeleton/SKILL.md` | 新技能 SKILL.md 的机制骨架（探查循环六步/铁律五类/写确认五步/输出规范/未知出口），占位符填空 |
-| 交付资产基线 | `delivery-assets/`（`delivery.md` + `scripts/` 渲染五件） | 可视化与输出规范的出厂基线——**出厂时整目录 fork 进目标技能**（`references/delivery.md` + `scripts/render_*.py`），第一版各技能同源；模板含占位符须按域填（`{{本域实体}}`；Top N 硬要求句非库存域整句按域改写） |
-| 三类知识判据卡 | `knowledge-criteria.md` | 建技能时逐条判断知识放哪：打法→模型推理（不落档）/ 接口坑→facts / 口径陷阱→calibers |
+| 交付资产基线 | `delivery-assets/`（`delivery.md` + `scripts/` 渲染四件，另含 `example-spec.json` 示例规格） | 可视化与输出规范的出厂基线——**出厂时整目录 fork 进目标技能**（`references/delivery.md` + `scripts/render_*.py`），第一版各技能同源；模板含占位符须按域填（`{{本域实体}}`；Top N 硬要求句非库存域整句按域改写） |
+| 知识取舍判据卡 | `knowledge-criteria.md` | 建技能 / 改技能时逐句判断要不要写、放哪：通式（删掉它模型仍能得到同样正确结果的就不写）+ 三类去处（打法不落档 / 接口坑→facts / 口径陷阱→calibers）+ 五类可删 + 四条删除纪律 |
 | 顾问薄壳模板 | `agent-shell.md` | 插件 `agents/<顾问>.md` 的身份薄壳：只定身份、挂载表（一项目一个 agent，列全部场景技能）与通用操守，禁复述技能行为 |
 
 ## fork 流程（第 4 步模板步）
 
-1. 复制 `skeleton/SKILL.md` 为目标技能 SKILL.md，填占位符（域定位/MCP 连接器/workspace/枚举触发词），按判据卡规划 references 两件套（`facts.md` 接口坑 + `calibers.md` 口径）
+1. 复制 `skeleton/SKILL.md` 为目标技能 SKILL.md，填占位符（域定位/MCP 连接器/workspace/枚举触发词），按判据卡规划 references 两件套（`facts.md` 接口坑 + `calibers.md` 口径）；成稿后按判据卡通式逐句清理，删除须留快照并交另一方复核
 2. **整目录复制 `delivery-assets/`**：`delivery.md` → `references/delivery.md`，`scripts/*` → `scripts/`——技能从此**自含交付资产**，与其余技能解耦；按域填占位符（`{{本域实体}}`；Top N 硬要求句非库存域整句按域改写），头注打基线戳（fork 自工厂模板 `<基线版本>`，`<日期>`）——之后本技能的交付规范自治演化，**不追模板后续变更**
 3. **插件层同步**（一插件 = 一项目 = 一本体）：新建项目时用 [`agent-shell.md`](agent-shell.md) 出身份薄壳 agent（一项目一个，挂载表列全部场景技能）、`avatars/expert.png` 品牌头像、`mcp/.mcp.json` 连接信息样本（不放插件根、清单不声明 mcpServers）；既有项目加场景技能则只需把新技能加进挂载表
 
