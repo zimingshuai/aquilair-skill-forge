@@ -12,8 +12,13 @@
 │                     # 旧范式存量（fnb/mfg）：接口行为手册 / 业务语义卡 / 场景剧本 / 交付细化 四层——存量维持，不强制迁移
 ├── scripts/          # save_meta 等缓存助手（有元数据服务时必配）+ render_dashboard.py 渲染四件（fork 自工厂模板，自含交付）
 ├── evals/            # 标准双件：evals.json + trigger-queries.json（agentskills.io 规范，见下节）
-└── assets/           # 模板、夹具等静态资源（目前各技能尚未用到，预留）
+└── assets/           # 四件套之一：技能行为依赖的静态资源（看板模板、确认卡/报告模板、用例夹具）——目录必须存在（.gitkeep 占位），品牌类资源不放这里（归插件层 avatars/）
 ```
+
+> 插件层结构（一插件 = 一项目 = 一本体）：`agents/`（身份薄壳 + 通用操守，一项目一个，模板见
+> [`templates/agent-shell.md`](templates/agent-shell.md)）+ `avatars/expert.png`（品牌头像，项目插件共用）
+> + `mcp/.mcp.json`（MCP 连接信息样本——用户级配置，不放插件根、清单不声明 mcpServers，否则被宿主
+> 自动注册且按插件命名空间隔离，多插件重复登记）。
 
 ## frontmatter 模板
 
@@ -23,10 +28,11 @@ name: <kebab-case-技能名，必须与目录名一致——规范精查：≤64
 description: <一句话中文定位>。Use when the user asks about <中文触发关键词枚举>——any question about <English keywords>. 数据来自 MCP 服务 <服务名>（<只读 / 含写操作，须走确认卡>）。仅限业务问答：<开发类请求不属于本技能>——not for development tasks like <典型开发请求>, even if the topic involves <业务主题>.  # ≤1024 字符（lint C13）
 license: Proprietary — Aquilair 内部分发，仅限公司内网使用
 compatibility: <环境依赖一句话，≤500 字符>  # 凡依赖 MCP/内网/特定宿主即必写——缺了跨宿主装上即坏且无从诊断
-metadata:  # 标配三子键，值一律字符串
+metadata:  # 标配四子键，值一律字符串
   author: Aquilair Team
   version: "<语义化版本>"
   workspace: "<本体项目 UUID 或名称>"
+  reasoning_modes: "<react=…；plan-then-execute=…；supervisor=…——按本技能实际形态声明（静态元数据，非运行时分派器）>"
 ---
 ```
 

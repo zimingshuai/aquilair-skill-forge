@@ -16,6 +16,7 @@ skill 工厂「生产端」主技能：新业务领域只需携带 **MCP 服务 
 | 生产端（本技能） | `skills/aquilair-skill-authoring/` | 本仓库（skill-forge 插件） | 六步流水线：立项→实测→划界→模板→接线→验收 |
 | 验收端 | `tools/skill-eval-generator/` | 本仓库 tools/ | 按目标技能结构特征生成四类题型草稿（人工复核后转正） |
 | 迭代端 | `skills/aquilair-eval-diagnostics/` | 本仓库（skill-forge 插件） | 评估 FAIL 归因：A 文档缺陷 / B 模型未遵守 / C 数据问题 / D 断言口径 |
+| 路由 | 宿主按技能 description 直接触发；同项目多场景由插件 agent 挂载表覆盖（路由层已退役） | — | 不设路由技能 |
 | 使用端 | `skills/aquilair-skill-router/` | aquilair-business-hub 仓库 | 终端业务请求先路由再干活 |
 | 知识端 | `skills/aquilair-knowledge-wiki/` | 本仓库（skill-forge 插件） | 域知识库摄取/查询/再摄取，为第 1/2 步供料 |
 | 评估能力 | `evals/`（运行协议 + promptfoo 框架） | 本仓库 | 用例规范、采样纪律、L3 自动化框架（用例数据随被测技能在 hub 仓库） |
@@ -74,11 +75,13 @@ skill 工厂「生产端」主技能：新业务领域只需携带 **MCP 服务 
 
 **规范合规要点（agentskills.io 开放规范，2026-11-03 上收为出厂标准）**：① frontmatter 完整性——name 精查（小写连字符、≤64 字符）、description ≤1024 且主动句式、**凡依赖 MCP/内网/特定宿主必写 `compatibility`**（≤500 字符）、`metadata` 标配 author+version+workspace；② agent 每次重复发明的逻辑固化进 `scripts/`（存档架构首选，agent-friendly 设计九条见 references/template.md），SKILL.md 列「可用脚本」入口；③ 技能内 `evals/` 标准双件——evals.json + trigger-queries.json，与目标仓 cases.yaml 同 PR 双向同步；④ 输出用内联模板骨架不用自由 prose。模板与样例见 references/template.md。
 
-### 5. 仓库接线（五处，落点 = 目标分发仓库）
+### 5. 插件接线（落点 = 目标分发仓库的项目插件）
 
-**目标分发仓库**：承载新技能的业务插件仓库。Aquilair 官方产线默认 `aquilair-business-hub`；外部团队使用本工厂时默认你自己的业务技能插件仓库（下称「目标仓」）。
+**目标分发仓库**：承载新技能插件的仓库。Aquilair 官方产线默认 `aquilair-business-hub`；外部团队使用本工厂时默认你自己的业务技能插件仓库（下称「目标仓」）。
 
-① 业务技能以**跨仓 PR** 落目标仓技能目录（官方默认 `plugins/business-hub/skills/`），MCP 服务加进目标仓 `.mcp.json`（官方默认 `plugins/business-hub/.mcp.json`；元技能落本仓 `plugins/skill-forge/skills/`）——**MCP 双环境约定**：测试区（dev 仓/开发态）连接器 `aquilair-mcp-servers-dev`（https://aquilair-dev.idcs.elitescloud.com/mcp-service/mcp），发版区（business-hub/安装态）连接器 `aquilair-mcp-servers`（https://aquilair-poc.idcs.elitescloud.com/mcp-service/mcp）——技能开发实测用 dev 环境，回流发版随仓切换端点，技能内不写死端点（连接器表述环境无关）；② 目标仓 `README.md` 技能表加行（枚举型宿主清单如 `.codebuddy-plugin` 同步加行，其余宿主目录扫描自动收录，漏登记其 lint C12 兜底）；③ 目标仓的技能路由表（官方默认 `aquilair-skill-router`）加行并声明叠加关系——行内容由 LLM 从新技能 description 起草、人工确认后入表（走其第六章接入三步；无路由技能的仓库跳过此步）；④ 用例目录建在目标仓 `evals/<技能名>/`（用例随被测技能同仓同 PR 演进）；⑤ 业务知识源文档落**知识库主本**（官方默认本仓 `aquilair-knowledge/sources/<域名>/`；外部团队即你的知识库工作区），references 口径逐条标注出处（纪律与格式见该目录 README）；官方产线知识更新后跑 `python tools/sync_knowledge.py <hub仓库路径>` 同步快照供 hub 打包分发。
+**插件结构定稿（2026-11-23，一插件 = 一项目 = 一本体）**：一个业务插件对应一个项目、绑定一个本体 workspace；插件内 `agents/`（身份薄壳，一项目一个）+ `skills/`（每场景一个技能，四件套齐备）+ `avatars/expert.png`（品牌头像）+ `mcp/.mcp.json`（MCP 连接信息样本）。agent 用 [`templates/agent-shell.md`](templates/agent-shell.md) 薄壳模板（只定身份与挂载表，行为细则一律在技能 SKILL.md，禁止复述；含通用操守节）。
+
+① 业务技能以**跨仓 PR** 落目标仓项目插件的 `skills/` 目录（元技能落本仓 `plugins/skill-forge/skills/`）；同项目新场景技能直接加进既有插件（不出新插件）。② **MCP 连接属用户级配置**：连接信息样本放插件 `mcp/.mcp.json`（格式与用户级配置 `mcpServers` 同形，安装者合并进宿主用户级配置一次）；**不放插件根**（插件根的 `.mcp.json` 会被宿主自动注册并按插件命名空间隔离——多插件各自登记同一网关会重复出工具）且 plugin.json **不声明** `mcpServers`。**MCP 双环境约定**：测试区（dev 仓/开发态）连接器 `aquilair-mcp-servers-dev`（https://aquilair-dev.idcs.elitescloud.com/mcp-service/mcp），发版区（business-hub/安装态）连接器 `aquilair-mcp-servers`（https://aquilair-poc.idcs.elitescloud.com/mcp-service/mcp）——技能开发实测用 dev 环境，回流发版随仓切换端点，技能内不写死端点（连接器表述环境无关）。③ 目标仓 `README.md` 插件矩阵加行（枚举型宿主清单如 `.codebuddy-plugin` 同步加行，其余宿主目录扫描自动收录）；**不设路由层**——宿主按技能 description 直接触发，同项目多场景由 agent 挂载表覆盖。④ 用例目录建在目标仓 `evals/<技能名>/`（用例随被测技能同仓同 PR 演进）。⑤ 业务知识源文档落**知识库主本**（官方默认本仓 `aquilair-knowledge/sources/<域名>/`；外部团队即你的知识库工作区），references 口径逐条标注出处（纪律与格式见该目录 README）；官方产线知识更新后跑 `python tools/sync_knowledge.py <hub仓库路径>` 同步快照供 hub 打包分发。
 
 **跨客户端手装通道（插件分发线之外的轻量通路，agentskills.io 约定）**：技能目录可拷贝装进 `<project>/.agents/skills/` 与 `~/.agents/skills/`（各客户端共享的标准位，客户端专属目录之外）；项目级覆盖用户级（同名冲突记警告）。项目级技能来自可能不可信的仓库——不盲装，先做信任检查（防指令注入）。
 
