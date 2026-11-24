@@ -7,6 +7,12 @@
 > 禁用 `git reset --hard` 直推远程（违反只进不退）。
 > 各节倒序排列（最新在上）；版本号不可变、只进不退。
 
+## push/2026-11-24.1（2026-11-24 18:07）｜3 commits
+- `ee3b2f0` feat(templates): delivery-assets 渲染基线升级——spec 校验+树图/瀑布图+标签防重叠+类型/示例命令
+- `d008ec6` docs(authoring): 判据卡升级为知识取舍七节——逐句通式+五类可删+四条删除纪律+出处标注底线
+- `1152541` docs(authoring): 吸收插件结构五裁决——接线步改版+agent-shell 薄壳模板+模板目录更新
+> 要点：判据卡升级知识取舍七节（逐句通式/五类可删/删除四纪律，极米二轮清理教训沉淀）；delivery-assets 渲染基线升级（spec 校验/树图瀑布图/标签防重叠/类型示例命令）——含积压的五裁决吸收一并在推
+
 ## push/2026-11-23.1（2026-11-23 10:28）｜2 commits
 - `cf3d396` feat(tools): lint C9 跨仓提及豁免机制——.mcp-crossref.json 清单+死豁免 WARN 兜底+解析失败 fail-closed
 - `a26bba2` docs(authoring): AGT-4 漂移扫描工序固化——runtime 版本变更→技能同步六步例行工序
