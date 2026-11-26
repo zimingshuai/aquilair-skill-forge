@@ -7,6 +7,12 @@
 > 禁用 `git reset --hard` 直推远程（违反只进不退）。
 > 各节倒序排列（最新在上）；版本号不可变、只进不退。
 
+## push/2026-11-26.1（2026-11-26 10:07）｜3 commits
+- `336f252` chore(release): 发版 v0.3.2——版本节+发版 tag
+- `a8ccefe` chore(release): 升版 v0.3.2——多宿主六清单版本号推进（jimi-sdb 骨架基线重写随版发布）
+- `4a64729` feat(templates): skeleton 以 jimi-sdb v2.5.2 为骨架基线重写——铁律子条目化、写确认参数不跨卡/幂等批量/分桶回查、溯源链结构化标记、reviewed_on 复核字段、可视化交付通道选型（渲染脚本/宿主 widget 内联）+ template.md 呼应（样板登记 jimi-sdb、五子键、双基线措辞）
+> 要点：发版 v0.3.2：skeleton 骨架基线以 jimi-sdb v2.5.2 重写（铁律子条目化/写确认深化/溯源链结构化/reviewed_on/交付通道选型）+ template.md 呼应登记
+
 ## v0.3.2（2026-11-26）｜发版 tag `v0.3.2`
 skeleton 骨架基线以 jimi-sdb v2.5.2 重写——铁律子条目化/写确认参数不跨卡与幂等批量/溯源链结构化标记/reviewed_on 复核字段/可视化交付通道选型（渲染脚本 vs 宿主 widget 内联）；template.md 呼应（样板登记 jimi-sdb、五子键、双基线措辞）
 
