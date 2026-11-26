@@ -1,7 +1,7 @@
 # SKILL.md 填空模板（第 4 步专用）
 
-> **新范式（2026-11-19 起，目标态）**：文件资产四件套见 [`templates/`](templates/)——`skeleton/SKILL.md` 机制骨架（探查循环六步含未知出口/铁律五类/写确认五步）、`delivery-assets/` 交付资产基线（**出厂时整目录 fork 进目标技能**，各技能自含交付、互不引用）、`knowledge-criteria.md` 知识取舍判据卡（逐句判断要不要写；打法→模型推理不落档 / 接口坑→facts / 口径陷阱→calibers）、`agent-shell.md` 顾问薄壳（插件 `agents/` 的身份薄壳，一项目一个；用法见下文「插件层结构」）。治理：模板改动仅用户明确发起，已 fork 技能不自动追。
-> 参照样板（均在 hub 仓 `aquilair-business-hub` 的 `plugins/business-hub/skills/` 下，跨仓引用、勿在本仓找）：**新范式样板**（规则驱动推理 + refs 两件套 + 自含交付资产）看 `launch-dynamic-assurance/`；旧范式存量（references 四层）看 `fnb-inventory-analysis/`（解释型）与 `mfg-transfer-allocation/`（受控执行型）——存量技能维持原结构迭代，不强制迁移；新技能一律按新范式出厂。
+> **新范式（2026-11-19 起，目标态）**：文件资产四件套见 [`templates/`](templates/)——`skeleton/SKILL.md` 机制骨架（探查循环六步含未知出口/铁律五类子条目化/写确认五步含参数不跨卡与幂等批量/输出规范含溯源链结构化标记/`reviewed_on` 复核字段）、`delivery-assets/` 交付资产基线（**出厂时整目录 fork 进目标技能**，各技能自含交付、互不引用）、`knowledge-criteria.md` 知识取舍判据卡（逐句判断要不要写；打法→模型推理不落档 / 接口坑→facts / 口径陷阱→calibers）、`agent-shell.md` 顾问薄壳（插件 `agents/` 的身份薄壳，一项目一个；用法见下文「插件层结构」）。治理：模板改动仅用户明确发起，已 fork 技能不自动追。
+> 参照样板（均在 hub 仓 `aquilair-business-hub` 的 `plugins/business-hub/skills/` 下，跨仓引用、勿在本仓找）：**新范式样板**（规则驱动推理 + refs 两件套 + 自含交付资产）看 `launch-dynamic-assurance/`；**骨架基线样板**（jimi-sdb v2.5.2 抽象，2026-11-26 起为 skeleton 基线——铁律子条目化、写确认参数不跨卡/幂等深化/批量分桶、溯源链结构化标记、宿主 widget 内联出图先例）看 `jimi-sdb/`；旧范式存量（references 四层）看 `fnb-inventory-analysis/`（解释型）与 `mfg-transfer-allocation/`（受控执行型）——存量技能维持原结构迭代，不强制迁移；新技能一律按新范式出厂。
 
 ## 目录结构约定
 
@@ -28,11 +28,12 @@ name: <kebab-case-技能名，必须与目录名一致——规范精查：≤64
 description: <一句话中文定位>。Use when the user asks about <中文触发关键词枚举>——any question about <English keywords>. 数据来自 MCP 服务 <服务名>（<只读 / 含写操作，须走确认卡>）。仅限业务问答：<开发类请求不属于本技能>——not for development tasks like <典型开发请求>, even if the topic involves <业务主题>.  # ≤1024 字符（lint C13）
 license: Proprietary — Aquilair 内部分发，仅限公司内网使用
 compatibility: <环境依赖一句话，≤500 字符>  # 凡依赖 MCP/内网/特定宿主即必写——缺了跨宿主装上即坏且无从诊断
-metadata:  # 标配四子键，值一律字符串
+metadata:  # 标配五子键，值一律字符串
   author: Aquilair Team
   version: "<语义化版本>"
-  workspace: "<本体项目 UUID 或名称>"
+  workspace: "<本体项目 UUID>"
   reasoning_modes: "<react=…；plan-then-execute=…；supervisor=…——按本技能实际形态声明（静态元数据，非运行时分派器）>"
+  reviewed_on: "<最近一次人工复核日期 YYYY-MM-DD——骨架或口径重大修订时更新>"
 ---
 ```
 
@@ -49,7 +50,7 @@ metadata:  # 标配四子键，值一律字符串
 | 标题 + 定位 | 一句话定位 + 否定句 + 开发边界句 | 同左 + 加总边界句 |
 | 数据环境 | —（无） | **必配**：生产 vs 沙箱定义、参数位置坑（如 `sandbox` 顶层）、混用禁令 |
 | 工具表 | 服务名 + 全限定工具名 + 参数 + 用途，读写标注 | 同左；写操作工具标「**写操作，必走确认卡**」 |
-| 探查循环（**两型标配**） | 以 MCP 实时查询为唯一事实源（不信快照/文档记录值/记忆值）：①锁范围 → ②选路径——**推理依据=实时元数据四类定义**（关系定路径、规则定判定面=注册规则输入并集现查推导、动作定验证出口；定义先行即落缓存）→ ③取实例（大表先探规模再分页；合计/占比须分页取齐再写）→ ④核证据（四类问题）→ ⑤收口（足以回答即停 + **未知出口**：沿依赖链找区分性证据→有承载出诊断卡）→ ⑥不足迭代，报错按坑典分流禁盲目重试。**完整机制文本以 [`templates/skeleton/SKILL.md`](templates/skeleton/SKILL.md) 为准**（launch v0.3.1 抽象，行为评估通过） | 同左 |
+| 探查循环（**两型标配**） | 以 MCP 实时查询为唯一事实源（不信快照/文档记录值/记忆值）：①锁范围 → ②选路径——**推理依据=实时元数据四类定义**（关系定路径、规则定判定面=注册规则输入并集现查推导、动作定验证出口；定义先行即落缓存）→ ③取实例（大表先探规模再分页；合计/占比须分页取齐再写）→ ④核证据（四类问题）→ ⑤收口（足以回答即停 + **未知出口**：沿依赖链找区分性证据→有承载出诊断卡）→ ⑥不足迭代，报错按坑典分流禁盲目重试。**完整机制文本以 [`templates/skeleton/SKILL.md`](templates/skeleton/SKILL.md) 为准**（launch v0.3.1 首抽象，jimi-sdb v2.5.2 骨架基线重写） | 同左 |
 | 专有语法 | filter 语法表（场景/规则/示例三列） | 同左（可压缩为一行示例） |
 | 铁律（Gotchas） | 禁止重判、只读边界、名称展示、不存在实体三步 | 证据优先、写前确认、默认沙箱、写后回查、错误可能发生在写入之后、不扩大动作 |
 | 回答前决策 | 复用/重查判据 | 并入「确认与执行流程」 |
